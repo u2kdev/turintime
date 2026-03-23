@@ -29,14 +29,14 @@ ENV           = load_env()
 SECRET_KEY    = ENV.get("SECRET_KEY", "ttpu-secret-change-me")
 GOOGLE_ID     = ENV.get("GOOGLE_CLIENT_ID", "")
 GOOGLE_SECRET = ENV.get("GOOGLE_CLIENT_SECRET", "")
-ADMIN_USER    = ENV.get("ADMIN_USERNAME", "admin")
-ADMIN_PASS    = ENV.get("ADMIN_PASSWORD", "admin123")
-BASE_URL      = ENV.get("BASE_URL", "http://localhost:8000")
-AUTHOR_NAME   = ENV.get("AUTHOR_NAME", "Developer")
+ADMIN_USER    = ENV.get("ADMIN_USERNAME", "umv0c")
+ADMIN_PASS    = ENV.get("ADMIN_PASSWORD", "sevinch")
+BASE_URL      = ENV.get("BASE_URL", "https://turintime.up.railway.app")
+AUTHOR_NAME   = ENV.get("AUTHOR_NAME", "umv0c")
 AUTHOR_SUR    = ENV.get("AUTHOR_SURNAME", "")
-AUTHOR_TG     = ENV.get("AUTHOR_TG", "")
-AUTHOR_LABEL  = ENV.get("AUTHOR_TG_LABEL", "")
-ORG_NAME      = ENV.get("ORG_NAME", "")
+AUTHOR_TG     = ENV.get("AUTHOR_TG", "@vader_inc")
+AUTHOR_LABEL  = ENV.get("AUTHOR_TG_LABEL", "@vader_inc")
+ORG_NAME      = ENV.get("ORG_NAME", "VADER INC.")
 ORG_DESC      = ENV.get("ORG_DESC", "")
 
 # ── DATABASE ──────────────────────────────────────────────────────────────
@@ -315,8 +315,8 @@ async def api_admin_stats(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    if not os.path.exists(DB_PATH):
-        print("❌ База не найдена! Запусти: python debug.py"); exit(1)
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)  # создаём папку data/
+    init_db()  # создаём таблицы если нет
     g, upd = db_meta()
     print(f"✓ База: {g} групп · {upd}")
     print(f"✓ Сервер → {BASE_URL}")
