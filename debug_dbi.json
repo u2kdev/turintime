@@ -1,0 +1,305 @@
+{
+  "tables": [
+    {
+      "id": "globals",
+      "rows_count": 0,
+      "cdefs": [
+        "name",
+        "settings",
+        "customfields",
+        "reg_name",
+        "edupage_year",
+        "tt_num",
+        "tt_datefrom"
+      ]
+    },
+    {
+      "id": "periods",
+      "rows_count": 0,
+      "cdefs": [
+        "period",
+        "name",
+        "short",
+        "starttime",
+        "endtime",
+        "daydata",
+        "printinsummary",
+        "printinteacher",
+        "printinclass",
+        "printinclassroom",
+        "printonlyinbells"
+      ]
+    },
+    {
+      "id": "breaks",
+      "rows_count": 0,
+      "cdefs": [
+        "name",
+        "short",
+        "starttime",
+        "endtime",
+        "daydata",
+        "printinsummary",
+        "printinteacher",
+        "printinclass",
+        "printinclassroom",
+        "printonlyinbells",
+        "printtext"
+      ]
+    },
+    {
+      "id": "bells",
+      "rows_count": 0,
+      "cdefs": [
+        "perioddata",
+        "breakdata"
+      ]
+    },
+    {
+      "id": "daysdefs",
+      "rows_count": 0,
+      "cdefs": [
+        "vals"
+      ]
+    },
+    {
+      "id": "weeksdefs",
+      "rows_count": 0,
+      "cdefs": [
+        "typ",
+        "vals"
+      ]
+    },
+    {
+      "id": "termsdefs",
+      "rows_count": 0,
+      "cdefs": [
+        "typ",
+        "vals"
+      ]
+    },
+    {
+      "id": "days",
+      "rows_count": 0,
+      "cdefs": [
+        "name",
+        "short"
+      ]
+    },
+    {
+      "id": "weeks",
+      "rows_count": 0,
+      "cdefs": [
+        "name",
+        "short"
+      ]
+    },
+    {
+      "id": "terms",
+      "rows_count": 0,
+      "cdefs": [
+        "name",
+        "short"
+      ]
+    },
+    {
+      "id": "buildings",
+      "rows_count": 0,
+      "cdefs": [
+        "color"
+      ]
+    },
+    {
+      "id": "classrooms",
+      "rows_count": 0,
+      "cdefs": [
+        "name",
+        "short",
+        "buildingid",
+        "bell",
+        "color",
+        "customfields"
+      ]
+    },
+    {
+      "id": "classes",
+      "rows_count": 0,
+      "cdefs": [
+        "name",
+        "short",
+        "teacherid",
+        "classroomids",
+        "bell",
+        "color",
+        "customfields",
+        "printsubjectpictures",
+        "edupageid",
+        "classroomid",
+        "teacherids"
+      ]
+    },
+    {
+      "id": "subjects",
+      "rows_count": 0,
+      "cdefs": [
+        "name",
+        "short",
+        "color",
+        "picture_url",
+        "customfields",
+        "contract_weight",
+        "edupageid"
+      ]
+    },
+    {
+      "id": "teachers",
+      "rows_count": 0,
+      "cdefs": [
+        "nameprefix",
+        "namesuffix",
+        "name",
+        "short",
+        "bell",
+        "color",
+        "fontcolorprint",
+        "fontcolorprint2",
+        "customfields",
+        "edupageid",
+        "classids"
+      ]
+    },
+    {
+      "id": "groups",
+      "rows_count": 0,
+      "cdefs": [
+        "name",
+        "classid",
+        "entireclass",
+        "ascttdivision",
+        "divisionid",
+        "color"
+      ]
+    },
+    {
+      "id": "divisions",
+      "rows_count": 0,
+      "cdefs": [
+        "classid",
+        "ascttdivision",
+        "groupids"
+      ]
+    },
+    {
+      "id": "students",
+      "rows_count": 0,
+      "cdefs": [
+        "classid",
+        "customfields",
+        "short"
+      ]
+    },
+    {
+      "id": "lessons",
+      "rows_count": 0,
+      "cdefs": [
+        "subjectid",
+        "teacherids",
+        "groupids",
+        "classids",
+        "count",
+        "durationperiods",
+        "termsdefid",
+        "weeksdefid",
+        "daysdefid",
+        "terms",
+        "seminargroup",
+        "bell",
+        "texts",
+        "studentids",
+        "groupnames",
+        "classdata"
+      ]
+    },
+    {
+      "id": "studentsubjects",
+      "rows_count": 0,
+      "cdefs": [
+        "studentid",
+        "subjectid",
+        "seminargroup",
+        "importance"
+      ]
+    },
+    {
+      "id": "cards",
+      "rows_count": 0,
+      "cdefs": [
+        "lessonid",
+        "locked",
+        "period",
+        "days",
+        "weeks",
+        "classroomids"
+      ]
+    },
+    {
+      "id": "ttreports",
+      "rows_count": 0,
+      "cdefs": [
+        "typ",
+        "fitwidth",
+        "fitheight",
+        "hideemptycolumns",
+        "hideemptyrows",
+        "headerwidth",
+        "headerheight",
+        "cellwidth",
+        "cellheight",
+        "page_tables",
+        "row_tables",
+        "column_tables",
+        "celltype",
+        "cardcolorenabled",
+        "cardcolortable1",
+        "cardcolortable2",
+        "cardcolorpos",
+        "cardstyles",
+        "classroomsupervisionstyle",
+        "gridheadertexts",
+        "pageheader",
+        "pageheaderprefixenabled",
+        "userheader",
+        "settings",
+        "landscape",
+        "repeatpage",
+        "splitpage_h",
+        "splitpage_w",
+        "splitpageorder",
+        "withclassroomtt",
+        "printlogo",
+        "printlogo_url",
+        "printsubstduty",
+        "name",
+        "extracolumns",
+        "extrarows",
+        "rowheadercolors",
+        "columnheadercolors"
+      ]
+    },
+    {
+      "id": "classroomsupervisions",
+      "rows_count": 0,
+      "cdefs": [
+        "classroomid",
+        "teacherid",
+        "day",
+        "week",
+        "term",
+        "period",
+        "break",
+        "locked",
+        "weeks"
+      ]
+    }
+  ]
+}

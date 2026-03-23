@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light" data-lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TTPU Schedule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f7f6f2; --surface:#fff; --ink:#111; --muted:#777;
+  --border:#e5e5e0; --blue:#2563eb; --blue-bg:#eff4ff;
+  --card:#fff; --nav-bg:rgba(247,246,242,.92);
+  --shadow:0 4px 24px rgba(0,0,0,.08);
+}
+[data-theme="dark"] {
+  --bg:#0f1117; --surface:#1a1d27; --ink:#e8e9f0; --muted:#5a5c72;
+  --border:rgba(255,255,255,.08); --blue:#818cf8; --blue-bg:rgba(129,140,248,.12);
+  --card:#1a1d27; --nav-bg:rgba(15,17,23,.92);
+  --shadow:0 4px 24px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box;margin:0;padding:0;transition:background-color .2s,color .2s,border-color .2s}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden}
+
+/* ── NAV ── */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:var(--nav-bg);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:0 40px;height:60px;
+  display:flex;align-items:center;gap:16px;
+}
+.nav-logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;color:var(--ink);text-decoration:none;flex-shrink:0}
+.nav-mark{width:30px;height:30px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:11px}
+.nav-space{flex:1}
+
+/* Controls row */
+.nav-controls{display:flex;align-items:center;gap:8px}
+
+/* Lang switcher */
+.lang-switch{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)}
+.lang-btn{padding:5px 10px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;border:none;background:transparent;font-family:inherit;transition:all .1s;letter-spacing:.04em}
+.lang-btn.active{background:var(--blue);color:#fff}
+
+/* Theme toggle */
+.theme-toggle{display:flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:8px;padding:5px 10px;background:var(--surface);cursor:pointer;font-size:11px;font-weight:600;color:var(--muted);font-family:inherit}
+.toggle-track{width:30px;height:16px;border-radius:8px;background:var(--border);position:relative;transition:background .2s}
+.toggle-track.on{background:var(--blue)}
+.toggle-thumb{width:12px;height:12px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-track.on .toggle-thumb{left:16px}
+
+/* User avatar */
+.nav-avatar{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);object-fit:cover}
+.nav-avatar-placeholder{width:28px;height:28px;border-radius:50%;background:var(--blue-bg);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--blue)}
+.nav-cta{padding:7px 16px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;text-decoration:none;transition:opacity .15s}
+.nav-cta:hover{opacity:.85}
+
+/* ── HERO ── */
+.hero{max-width:900px;margin:0 auto;padding:80px 40px 60px;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 14px 5px 10px;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:28px}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0}
+h1{font-family:'Instrument Serif',serif;font-size:clamp(36px,6vw,68px);line-height:1.1;color:var(--ink);margin-bottom:18px;font-weight:400}
+h1 em{font-style:italic;color:var(--blue)}
+.hero-sub{font-size:16px;color:var(--muted);max-width:500px;margin:0 auto 36px;line-height:1.7;font-weight:300}
+.hero-btns{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;background:var(--ink);color:var(--bg);border-radius:10px;font-size:15px;font-weight:500;border:none;cursor:pointer;font-family:inherit;transition:all .15s;text-decoration:none}
+.btn-primary:hover{opacity:.8;transform:translateY(-1px)}
+.btn-secondary{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;color:var(--muted);text-decoration:none;transition:all .15s;background:transparent}
+.btn-secondary:hover{border-color:var(--blue);color:var(--blue)}
+
+/* ── PREVIEW ── */
+.preview-wrap{max-width:1000px;margin:0 auto;padding:0 40px 60px}
+.browser{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+.browser-bar{display:flex;align-items:center;gap:6px;padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--border)}
+.bub{width:10px;height:10px;border-radius:50%}
+.browser-url{flex:1;background:var(--border);border-radius:5px;height:20px;margin:0 10px;display:flex;align-items:center;padding:0 10px;font-size:10px;color:var(--muted)}
+.cal-preview{display:grid;grid-template-columns:56px repeat(5,1fr);gap:1px;background:var(--border);font-size:10px}
+.cp-cell{background:var(--surface);padding:7px 6px}
+.cp-head{background:var(--bg);font-weight:600;text-align:center;padding:7px 4px;font-size:9px;color:var(--muted);text-transform:uppercase}
+.cp-head.today{background:var(--blue);color:#fff}
+.cp-time{color:var(--muted);font-size:9px}
+.ev{border-left:3px solid;border-radius:4px;padding:4px 6px;margin:2px;font-size:9px;line-height:1.4}
+.ev-b{background:#dbeafe;border-color:#2563eb;color:#1e3a8a}
+.ev-g{background:#dcfce7;border-color:#16a34a;color:#14532d}
+.ev-y{background:#fef3c7;border-color:#d97706;color:#78350f}
+.ev-p{background:#ede9fe;border-color:#7c3aed;color:#3b0764}
+.ev-r{background:#fce7f3;border-color:#db2777;color:#831843}
+[data-theme="dark"] .ev-b{background:rgba(37,99,235,.2);color:#93c5fd}
+[data-theme="dark"] .ev-g{background:rgba(22,163,74,.2);color:#86efac}
+[data-theme="dark"] .ev-y{background:rgba(217,119,6,.2);color:#fcd34d}
+[data-theme="dark"] .ev-p{background:rgba(124,58,237,.2);color:#c4b5fd}
+[data-theme="dark"] .ev-r{background:rgba(219,39,119,.2);color:#f9a8d4}
+
+/* ── FEATURES ── */
+.features{max-width:900px;margin:0 auto;padding:0 40px 60px}
+.features-title{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:24px}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.feat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;transition:box-shadow .2s}
+.feat:hover{box-shadow:var(--shadow)}
+.feat-icon{font-size:26px;margin-bottom:12px}
+.feat-title{font-size:14px;font-weight:600;margin-bottom:6px}
+.feat-desc{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* ── COMPARISON ── */
+.compare{max-width:900px;margin:0 auto;padding:0 40px 60px}
+.section-title{font-family:'Instrument Serif',serif;font-size:clamp(24px,4vw,36px);font-weight:400;text-align:center;margin-bottom:8px}
+.section-sub{text-align:center;color:var(--muted);font-size:14px;margin-bottom:28px}
+.cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cmp-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px}
+.cmp-head{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.cmp-bad{color:#ef4444}.cmp-good{color:#22c55e}
+.cmp-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+.cmp-list li{font-size:13px;color:var(--muted);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.cmp-list li::before{content:'✕';color:#ef4444;font-size:12px;flex-shrink:0;margin-top:1px}
+.cmp-list.good li::before{content:'✓';color:#22c55e}
+
+/* ── ABOUT ── */
+.about{max-width:900px;margin:0 auto;padding:0 40px 80px}
+.about-inner{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:36px;display:flex;gap:32px;align-items:flex-start}
+.about-org{flex:1}
+.about-org-name{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:8px}
+.about-org-title{font-size:20px;font-weight:600;margin-bottom:8px}
+.about-org-desc{font-size:14px;color:var(--muted);line-height:1.7}
+.about-divider{width:1px;background:var(--border);align-self:stretch}
+.about-dev{min-width:200px}
+.about-dev-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.about-dev-name{font-size:18px;font-weight:600;margin-bottom:4px}
+.about-dev-tg{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--blue);text-decoration:none;margin-top:8px}
+.about-dev-tg:hover{text-decoration:underline}
+.about-org-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:#ef4444;margin-top:12px}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--border);padding:20px 40px;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--muted)}
+footer a{color:var(--muted);text-decoration:none}.footer a:hover{color:var(--ink)}
+
+/* ── AUTH MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px;width:400px;max-width:94vw;position:relative;animation:popIn .2s ease}
+@keyframes popIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.modal-close{position:absolute;top:14px;right:14px;width:26px;height:26px;border:1px solid var(--border);border-radius:6px;background:var(--bg);cursor:pointer;font-size:13px;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.modal-close:hover{color:var(--ink)}
+.modal-icon{font-size:32px;margin-bottom:14px}
+.modal h3{font-size:18px;font-weight:600;margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.5}
+
+/* Google button */
+.btn-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-weight:500;color:var(--ink);background:var(--surface);text-decoration:none;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-google:hover{border-color:#aaa}
+.btn-google[disabled]{opacity:.4;cursor:not-allowed;pointer-events:none}
+
+/* Divider */
+.or-row{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--muted);font-size:12px}
+.or-line{flex:1;height:1px;background:var(--border)}
+
+/* Form */
+.form-label{font-size:12px;font-weight:500;color:var(--muted);display:block;margin-bottom:5px}
+.form-input{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:inherit;color:var(--ink);background:var(--bg);outline:none;transition:border-color .15s;margin-bottom:11px}
+.form-input:focus{border-color:var(--blue);background:var(--surface)}
+.btn-login{width:100%;padding:12px;background:var(--ink);color:var(--bg);border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:opacity .15s;margin-top:4px}
+.btn-login:hover{opacity:.8}
+.form-error{font-size:12px;color:#ef4444;margin-top:6px;display:none;padding:8px 12px;background:rgba(239,68,68,.08);border-radius:7px;border:1px solid rgba(239,68,68,.15)}
+.modal-note{font-size:11px;color:var(--muted);text-align:center;margin-top:14px}
+
+@media(max-width:680px){
+  nav{padding:0 16px}
+  .hero{padding:52px 20px 40px}
+  .preview-wrap,.features,.compare,.about{padding-left:20px;padding-right:20px}
+  .feat-grid{grid-template-columns:1fr}
+  .cmp-grid{grid-template-columns:1fr}
+  .about-inner{flex-direction:column;gap:20px}
+  .about-divider{display:none}
+  footer{padding:16px 20px;flex-direction:column;gap:6px;text-align:center}
+  .lang-switch .lang-btn{padding:5px 7px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="/">
+    <div class="nav-mark">TT</div>
+    TTPU Schedule
+  </a>
+  <div class="nav-space"></div>
+  <div class="nav-controls">
+    <!-- Lang -->
+    <div class="lang-switch">
+      <button class="lang-btn active" data-l="ru" onclick="setLang('ru')">RU</button>
+      <button class="lang-btn" data-l="uz" onclick="setLang('uz')">UZ</button>
+      <button class="lang-btn" data-l="en" onclick="setLang('en')">EN</button>
+    </div>
+    <!-- Theme -->
+    <button class="theme-toggle" onclick="toggleTheme()" title="Тема">
+      <span id="theme-label">☀️</span>
+      <div class="toggle-track" id="theme-track">
+        <div class="toggle-thumb"></div>
+      </div>
+    </button>
+    <!-- User area (filled by JS) -->
+    <div id="nav-user"></div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge"><span class="badge-dot"></span> <span data-i18n="badge">Turin Polytechnic · Ташкент</span></div>
+  <h1 data-i18n="h1">Расписание<br>в <em>удобном</em> формате</h1>
+  <p class="hero-sub" data-i18n="sub">Весь семестр, все группы — в красивом календарном виде. Без плохого сайта EduPage, без поиска PDF-файлов.</p>
+  <div class="hero-btns" id="hero-btns">
+    <!-- filled by JS -->
+  </div>
+</div>
+
+<!-- PREVIEW -->
+<div class="preview-wrap">
+  <div class="browser">
+    <div class="browser-bar">
+      <div class="bub" style="background:#ff5f57"></div>
+      <div class="bub" style="background:#febc2e"></div>
+      <div class="bub" style="background:#28c840"></div>
+      <div class="browser-url">🔒 ttpu.schedule / timetable</div>
+    </div>
+    <div class="cal-preview">
+      <div class="cp-cell cp-head"></div>
+      <div class="cp-cell cp-head">Пн</div>
+      <div class="cp-cell cp-head today">Вт ●</div>
+      <div class="cp-cell cp-head">Ср</div>
+      <div class="cp-cell cp-head">Чт</div>
+      <div class="cp-cell cp-head">Пт</div>
+      <div class="cp-cell cp-time">09:00</div>
+      <div class="cp-cell"></div>
+      <div class="cp-cell"><div class="ev ev-b">Матан<br>A-301</div></div>
+      <div class="cp-cell"><div class="ev ev-g">Физика<br>B-102</div></div>
+      <div class="cp-cell"></div>
+      <div class="cp-cell"><div class="ev ev-y">Прог.<br>Lab-5</div></div>
+      <div class="cp-cell cp-time">10:30</div>
+      <div class="cp-cell"><div class="ev ev-p">Алгебра<br>A-201</div></div>
+      <div class="cp-cell"></div>
+      <div class="cp-cell"></div>
+      <div class="cp-cell"><div class="ev ev-r">История<br>C-401</div></div>
+      <div class="cp-cell"></div>
+      <div class="cp-cell cp-time">12:00</div>
+      <div class="cp-cell"><div class="ev ev-g">Химия<br>D-105</div></div>
+      <div class="cp-cell"><div class="ev ev-y">Физра<br>Gym</div></div>
+      <div class="cp-cell"><div class="ev ev-b">Матан<br>A-301</div></div>
+      <div class="cp-cell"></div>
+      <div class="cp-cell"><div class="ev ev-p">ОПИ<br>Lab-2</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div class="features" id="features">
+  <div class="features-title" data-i18n="feat-title">Что внутри</div>
+  <div class="feat-grid">
+    <div class="feat">
+      <div class="feat-icon">📅</div>
+      <div class="feat-title" data-i18n="f1t">Недельный календарь</div>
+      <div class="feat-desc" data-i18n="f1d">Все пары на неделе как в Google Calendar — по дням и временным слотам</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">▶️</div>
+      <div class="feat-title" data-i18n="f2t">Текущая пара</div>
+      <div class="feat-desc" data-i18n="f2d">Автоматически выделяет пару которая идёт прямо сейчас по системному времени</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🔄</div>
+      <div class="feat-title" data-i18n="f3t">Смена группы</div>
+      <div class="feat-desc" data-i18n="f3d">Быстро переключайся между группами. Твой выбор сохраняется автоматически</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🤖</div>
+      <div class="feat-title" data-i18n="f4t">Telegram бот</div>
+      <div class="feat-desc" data-i18n="f4d">Расписание прямо в Telegram — кнопками по дням, без поиска</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🌙</div>
+      <div class="feat-title" data-i18n="f5t">Тёмная тема</div>
+      <div class="feat-desc" data-i18n="f5d">Светлая и тёмная тема, выбор сохраняется. Глаза скажут спасибо</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🌐</div>
+      <div class="feat-title" data-i18n="f6t">Три языка</div>
+      <div class="feat-desc" data-i18n="f6d">Русский, узбекский и английский. Переключается в один клик</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARISON -->
+<div class="compare">
+  <div class="section-title" data-i18n="cmp-title">Зачем это нужно?</div>
+  <div class="section-sub" data-i18n="cmp-sub">Сравнение с официальным сайтом</div>
+  <div class="cmp-grid">
+    <div class="cmp-card">
+      <div class="cmp-head"><span class="cmp-bad">✕</span> <span data-i18n="old-label">EduPage / PDF</span></div>
+      <ul class="cmp-list">
+        <li data-i18n="ol1">Медленный и неудобный интерфейс</li>
+        <li data-i18n="ol2">Нельзя быстро найти свою группу</li>
+        <li data-i18n="ol3">Не работает на мобильном</li>
+        <li data-i18n="ol4">Нет тёмной темы</li>
+        <li data-i18n="ol5">Нельзя посмотреть расписание на неделю</li>
+      </ul>
+    </div>
+    <div class="cmp-card">
+      <div class="cmp-head"><span class="cmp-good">✓</span> <span data-i18n="new-label">TTPU Schedule</span></div>
+      <ul class="cmp-list good">
+        <li data-i18n="nl1">Быстрый поиск группы из списка</li>
+        <li data-i18n="nl2">Удобный недельный вид</li>
+        <li data-i18n="nl3">Отлично работает на телефоне</li>
+        <li data-i18n="nl4">Тёмная тема и 3 языка</li>
+        <li data-i18n="nl5">Telegram бот для быстрого доступа</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT (filled by JS from /api/config) -->
+<div class="about" id="about-section" style="display:none">
+  <div class="about-inner">
+    <div class="about-org">
+      <div class="about-org-name" data-i18n="org-label">Разработчик</div>
+      <div class="about-org-title" id="org-name"></div>
+      <div class="about-org-desc" id="org-desc"></div>
+      <div class="about-org-badge" id="org-badge" style="display:none">🎓 Сделано для TTPU</div>
+    </div>
+    <div class="about-divider"></div>
+    <div class="about-dev">
+      <div class="about-dev-label" data-i18n="dev-label">Автор проекта</div>
+      <div class="about-dev-name" id="dev-name"></div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px" data-i18n="dev-role">Разработчик</div>
+      <a class="about-dev-tg" id="dev-tg" href="#" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.88 13.67l-2.948-.924c-.64-.203-.654-.64.136-.953l11.52-4.443c.533-.194 1.002.131.974.898z"/></svg>
+        <span id="dev-tg-label"></span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>© 2025 TTPU Timetable</span>
+  <a href="/admin" style="font-size:12px">Admin</a>
+</footer>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-icon">📅</div>
+    <h3 data-i18n="modal-title">Вход в аккаунт</h3>
+    <p class="modal-sub" data-i18n="modal-sub">Войдите чтобы открыть расписание TTPU</p>
+
+    <a class="btn-google" id="btn-google" href="/login">
+      <svg width="16" height="16" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.717v2.258h2.908C16.658 14.478 17.64 12.17 17.64 9.2z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+      <span data-i18n="google-btn">Войти через Google</span>
+    </a>
+
+    <div class="or-row"><div class="or-line"></div><span data-i18n="or">или</span><div class="or-line"></div></div>
+
+    <label class="form-label" data-i18n="field-user">Логин (для администратора)</label>
+    <input class="form-input" id="f-user" type="text" autocomplete="username" placeholder="admin">
+    <label class="form-label" data-i18n="field-pass">Пароль</label>
+    <input class="form-input" id="f-pass" type="password" autocomplete="current-password" placeholder="••••••••">
+    <div class="form-error" id="form-err"></div>
+    <button class="btn-login" onclick="doLogin()" data-i18n="login-btn">Войти</button>
+    <div class="modal-note" data-i18n="modal-note">Данные для входа через почту — только для администратора</div>
+  </div>
+</div>
+
+<script>
+// ── I18N ──────────────────────────────────────────────────────────────────
+const TRANSLATIONS = {
+  ru: {
+    badge:'Turin Polytechnic · Ташкент',
+    h1:'Расписание<br>в <em>удобном</em> формате',
+    sub:'Весь семестр, все группы — в красивом календарном виде. Без плохого сайта EduPage, без поиска PDF-файлов.',
+    'feat-title':'Что внутри',
+    f1t:'Недельный календарь', f1d:'Все пары на неделе как в Google Calendar — по дням и временным слотам',
+    f2t:'Текущая пара', f2d:'Автоматически выделяет пару которая идёт прямо сейчас по системному времени',
+    f3t:'Смена группы', f3d:'Быстро переключайся между группами. Твой выбор сохраняется автоматически',
+    f4t:'Telegram бот', f4d:'Расписание прямо в Telegram — кнопками по дням, без поиска',
+    f5t:'Тёмная тема', f5d:'Светлая и тёмная тема, выбор сохраняется. Глаза скажут спасибо',
+    f6t:'Три языка', f6d:'Русский, узбекский и английский. Переключается в один клик',
+    'cmp-title':'Зачем это нужно?', 'cmp-sub':'Сравнение с официальным сайтом',
+    'old-label':'EduPage / PDF', 'new-label':'TTPU Schedule',
+    ol1:'Медленный и неудобный интерфейс', ol2:'Нельзя быстро найти свою группу',
+    ol3:'Не работает на мобильном', ol4:'Нет тёмной темы', ol5:'Нельзя посмотреть расписание на неделю',
+    nl1:'Быстрый поиск группы из списка', nl2:'Удобный недельный вид',
+    nl3:'Отлично работает на телефоне', nl4:'Тёмная тема и 3 языка', nl5:'Telegram бот для быстрого доступа',
+    'org-label':'Организация', 'dev-label':'Автор проекта', 'dev-role':'Разработчик',
+    'modal-title':'Вход в аккаунт', 'modal-sub':'Войдите чтобы открыть расписание TTPU',
+    'google-btn':'Войти через Google', or:'или',
+    'field-user':'Логин (для администратора)', 'field-pass':'Пароль',
+    'login-btn':'Войти', 'modal-note':'Данные для входа через почту — только для администратора',
+    'open-tt':'Открыть расписание', 'view-tt':'Смотреть расписание', 'learn':'Узнать больше ↓',
+  },
+  uz: {
+    badge:'Turin Polytechnic · Toshkent',
+    h1:'Dars jadvali<br><em>qulay</em> formatda',
+    sub:'Butun semestr, barcha guruhlar — chiroyli kalendar ko\'rinishida. EduPage saytisiz, PDF izlashsiz.',
+    'feat-title':'Nima bor ichida',
+    f1t:'Haftalik kalendar', f1d:'Barcha darslar hafta davomida Google Calendar kabi ko\'rsatiladi',
+    f2t:'Joriy dars', f2d:'Hozir davom etayotgan darsni avtomatik ajratib ko\'rsatadi',
+    f3t:'Guruh almashtirish', f3d:'Guruhlar o\'rtasida tez almashtirish. Tanlovingiz avtomatik saqlanadi',
+    f4t:'Telegram bot', f4d:'Jadval to\'g\'ridan-to\'g\'ri Telegramda — tugmalar bilan',
+    f5t:'Qorong\'u mavzu', f5d:'Yorug\' va qorong\'u mavzu, tanlov saqlanadi',
+    f6t:'Uch til', f6d:'Rus, o\'zbek va ingliz tili. Bir bosishda o\'zgaradi',
+    'cmp-title':'Nima uchun kerak?', 'cmp-sub':'Rasmiy sayt bilan taqqoslash',
+    'old-label':'EduPage / PDF', 'new-label':'TTPU Schedule',
+    ol1:'Sekin va noqulay interfeys', ol2:'Guruhni tez topib bo\'lmaydi',
+    ol3:'Mobilda ishlamaydi', ol4:'Qorong\'u mavzu yo\'q', ol5:'Haftalik jadval ko\'rsatilmaydi',
+    nl1:'Ro\'yxatdan guruhni tez qidirish', nl2:'Qulay haftalik ko\'rinish',
+    nl3:'Telefonda ajoyib ishlaydi', nl4:'Qorong\'u mavzu va 3 til', nl5:'Tez kirish uchun Telegram bot',
+    'org-label':'Tashkilot', 'dev-label':'Loyiha muallifi', 'dev-role':'Dasturchi',
+    'modal-title':'Hisobga kirish', 'modal-sub':'Jadvalga kirish uchun tizimga kiring',
+    'google-btn':'Google orqali kirish', or:'yoki',
+    'field-user':'Login (administrator uchun)', 'field-pass':'Parol',
+    'login-btn':'Kirish', 'modal-note':'Pochta orqali kirish faqat administrator uchun',
+    'open-tt':'Jadvalni ochish', 'view-tt':'Jadvalni ko\'rish', 'learn':'Ko\'proq bilish ↓',
+  },
+  en: {
+    badge:'Turin Polytechnic · Tashkent',
+    h1:'Timetable in a<br><em>beautiful</em> format',
+    sub:'The entire semester, all groups — in a clean calendar view. No more bad EduPage, no more PDFs.',
+    'feat-title':'What\'s inside',
+    f1t:'Weekly calendar', f1d:'All classes in a week like Google Calendar — by day and time slots',
+    f2t:'Current class', f2d:'Automatically highlights the class happening right now',
+    f3t:'Switch group', f3d:'Quickly switch between groups. Your choice is saved automatically',
+    f4t:'Telegram bot', f4d:'Timetable right in Telegram — by day buttons, no searching',
+    f5t:'Dark theme', f5d:'Light and dark mode, preference saved. Your eyes will thank you',
+    f6t:'Three languages', f6d:'Russian, Uzbek and English. Switch in one click',
+    'cmp-title':'Why use this?', 'cmp-sub':'Comparison with official tools',
+    'old-label':'EduPage / PDF', 'new-label':'TTPU Schedule',
+    ol1:'Slow and inconvenient interface', ol2:'Can\'t quickly find your group',
+    ol3:'Doesn\'t work well on mobile', ol4:'No dark theme', ol5:'Can\'t see weekly schedule at a glance',
+    nl1:'Quick group search from a list', nl2:'Convenient weekly view',
+    nl3:'Works great on mobile', nl4:'Dark theme and 3 languages', nl5:'Telegram bot for instant access',
+    'org-label':'Organization', 'dev-label':'Project author', 'dev-role':'Developer',
+    'modal-title':'Sign in', 'modal-sub':'Sign in to access the TTPU timetable',
+    'google-btn':'Sign in with Google', or:'or',
+    'field-user':'Login (admin only)', 'field-pass':'Password',
+    'login-btn':'Sign in', 'modal-note':'Email login is for administrators only',
+    'open-tt':'Open timetable', 'view-tt':'View timetable', 'learn':'Learn more ↓',
+  }
+};
+
+let currentLang = localStorage.getItem('ttpu-lang') || 'ru';
+let currentTheme = localStorage.getItem('ttpu-theme') || 'light';
+let isAuthenticated = false;
+
+function applyLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('ttpu-lang', lang);
+  document.documentElement.setAttribute('data-lang', lang);
+  document.querySelectorAll('[data-l]').forEach(b => b.classList.toggle('active', b.dataset.l === lang));
+  const T = TRANSLATIONS[lang] || TRANSLATIONS.ru;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (T[key] !== undefined) el.innerHTML = T[key];
+  });
+  renderHeroBtns();
+}
+
+function setLang(lang) { applyLang(lang); }
+
+function applyTheme(theme) {
+  currentTheme = theme;
+  localStorage.setItem('ttpu-theme', theme);
+  document.documentElement.setAttribute('data-theme', theme);
+  const isDark = theme === 'dark';
+  document.getElementById('theme-label').textContent = isDark ? '🌙' : '☀️';
+  document.getElementById('theme-track').classList.toggle('on', isDark);
+}
+
+function toggleTheme() {
+  applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+}
+
+function renderHeroBtns() {
+  const T = TRANSLATIONS[currentLang] || TRANSLATIONS.ru;
+  const btns = document.getElementById('hero-btns');
+  if (isAuthenticated) {
+    btns.innerHTML = `<a class="btn-primary" href="/timetable">📅 ${T['open-tt']}</a>`;
+  } else {
+    btns.innerHTML = `
+      <button class="btn-primary" onclick="openModal()">${T['view-tt']}</button>
+      <a class="btn-secondary" href="#features">${T['learn']}</a>`;
+  }
+}
+
+function openModal() { document.getElementById('modal').classList.add('open'); }
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function closeModalOutside(e) { if (e.target.id === 'modal') closeModal(); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+async function doLogin() {
+  const u = document.getElementById('f-user').value.trim();
+  const p = document.getElementById('f-pass').value.trim();
+  const errEl = document.getElementById('form-err');
+  errEl.style.display = 'none';
+  if (!u || !p) { errEl.textContent = 'Введите логин и пароль'; errEl.style.display = 'block'; return; }
+  try {
+    const r = await fetch('/api/login', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({username: u, password: p})
+    });
+    const d = await r.json();
+    if (d.ok) { location.href = d.redirect || '/admin'; }
+    else { errEl.textContent = d.error || 'Ошибка'; errEl.style.display = 'block'; }
+  } catch { errEl.textContent = 'Ошибка сети'; errEl.style.display = 'block'; }
+}
+document.getElementById('f-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+async function init() {
+  applyTheme(currentTheme);
+  applyLang(currentLang);
+
+  const [me, cfg] = await Promise.all([
+    fetch('/api/me').then(r => r.json()),
+    fetch('/api/config').then(r => r.json()),
+  ]);
+
+  isAuthenticated = me.authenticated;
+
+  // Nav user area
+  const navUser = document.getElementById('nav-user');
+  if (me.authenticated) {
+    navUser.innerHTML = `
+      ${me.picture ? `<img class="nav-avatar" src="${me.picture}" onerror="this.style.display='none'">` : ''}
+      <a class="nav-cta" href="/timetable">📅</a>`;
+  } else {
+    navUser.innerHTML = `<button class="nav-cta" onclick="openModal()">Войти</button>`;
+  }
+
+  renderHeroBtns();
+
+  // Google button
+  const gBtn = document.getElementById('btn-google');
+  if (!cfg.google_enabled) {
+    gBtn.setAttribute('disabled', '');
+    gBtn.title = 'Google OAuth не настроен';
+  }
+
+  // About section
+  if (cfg.author_name || cfg.org_name) {
+    document.getElementById('about-section').style.display = '';
+    if (cfg.org_name) {
+      document.getElementById('org-name').textContent = cfg.org_name;
+      document.getElementById('org-badge').style.display = 'inline-flex';
+    }
+    if (cfg.org_desc) document.getElementById('org-desc').textContent = cfg.org_desc;
+    if (cfg.author_name) document.getElementById('dev-name').textContent = cfg.author_name;
+    if (cfg.author_tg && cfg.author_label) {
+      const tgEl = document.getElementById('dev-tg');
+      tgEl.href = cfg.author_tg;
+      document.getElementById('dev-tg-label').textContent = cfg.author_label;
+    }
+  }
+
+  // Open modal if redirected
+  const p = new URLSearchParams(location.search);
+  if (p.get('auth') === '1' && !me.authenticated) openModal();
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+authlib
+httpx
+itsdangerous
+python-multipart
+starlette
+aiogram>=3.0
+playwright
