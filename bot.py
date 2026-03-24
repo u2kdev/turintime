@@ -269,8 +269,7 @@ async def run_bot():
     token = load_token()
     if not token:
         print("❌ BOT_TOKEN не найден"); return
-    if not os.path.exists(DB_PATH):
-        print("❌ База не найдена. Запусти: python debug.py"); return
+
     bot = Bot(token=token, default=DefaultBotProperties(parse_mode="HTML"))
     dp  = build_dp()
     g, upd = db_meta()
