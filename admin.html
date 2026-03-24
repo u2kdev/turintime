@@ -28,11 +28,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);disp
 .logout-a:hover{color:#dc2626}
 
 /* MAIN */
-.main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column;min-width:0}
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0}
 .page-title{font-size:18px;font-weight:600}
 .page-sub{font-size:12px;color:var(--muted);margin-top:2px}
-.refresh-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--white);cursor:pointer;font-family:inherit;transition:background .1s}
+.refresh-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--white);cursor:pointer;font-family:inherit;transition:background .1s;white-space:nowrap;flex-shrink:0}
 .refresh-btn:hover{background:var(--bg)}
 
 .content{flex:1;overflow-y:auto;padding:24px 28px}
@@ -40,8 +40,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);disp
 .content::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px}
 
 /* TABS */
-.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid var(--border);padding-bottom:0}
-.tab{padding:10px 16px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid var(--border);padding-bottom:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:10px 16px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap;flex-shrink:0}
 .tab:hover{color:var(--ink)}
 .tab.active{color:var(--blue);border-bottom-color:var(--blue)}
 
@@ -59,14 +60,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);disp
 /* CHARTS ROW */
 .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
 .card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:20px}
-.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
 .card-title{font-size:14px;font-weight:600}
 .card-badge{font-size:11px;color:var(--muted);background:var(--bg);padding:3px 8px;border-radius:5px}
 .chart-box{height:180px}
 
 /* TABLES */
 .table-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
-table{width:100%;border-collapse:collapse;font-size:13px}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.table-scroll::-webkit-scrollbar{height:3px}
+.table-scroll::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:500px}
 th{text-align:left;padding:8px 10px;border-bottom:2px solid var(--border);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 td{padding:10px;border-bottom:1px solid var(--border);vertical-align:middle}
 tr:last-child td{border-bottom:none}
@@ -95,8 +99,68 @@ tr:hover td{background:#fafaf8}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading{display:flex;align-items:center;gap:8px;color:var(--muted);padding:24px}
 
-@media(max-width:1100px){.stat-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:800px){.sidebar{display:none}.charts-row{grid-template-columns:1fr}.stat-grid{grid-template-columns:1fr 1fr}}
+/* ── MOBILE BOTTOM NAV ── */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);padding:8px 0 12px;z-index:50;justify-content:space-around}
+.mob-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 12px;border:none;background:none;cursor:pointer;font-family:inherit;color:var(--muted);font-size:10px;font-weight:500}
+.mob-nav-item.active{color:var(--blue)}
+.mob-nav-icon{font-size:18px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1100px){
+  .stat-grid{grid-template-columns:repeat(3,1fr)}
+}
+
+@media(max-width:800px){
+  /* Hide desktop sidebar */
+  .sidebar{display:none}
+
+  /* Full width main */
+  body{flex-direction:column}
+  .main{min-height:100vh}
+
+  /* Topbar */
+  .topbar{padding:12px 16px}
+  .page-title{font-size:16px}
+
+  /* Content */
+  .content{padding:16px;padding-bottom:80px}
+
+  /* Stats */
+  .stat-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .stat-card{padding:14px}
+  .stat-num{font-size:24px}
+
+  /* Charts */
+  .charts-row{grid-template-columns:1fr;gap:12px}
+  .chart-box{height:160px}
+
+  /* Tabs */
+  .tabs{margin-bottom:16px}
+  .tab{padding:8px 12px;font-size:12px}
+
+  /* Mobile nav */
+  .mobile-nav{display:flex}
+
+  /* Table scroll */
+  .table-card{padding:14px}
+  table{min-width:480px}
+}
+
+@media(max-width:480px){
+  .stat-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .stat-card{padding:12px}
+  .stat-label{font-size:10px}
+  .stat-num{font-size:20px}
+  .stat-sub{display:none}
+  .topbar{padding:10px 14px;gap:8px}
+  .page-title{font-size:14px}
+  .page-sub{display:none}
+  .refresh-btn{padding:6px 10px;font-size:12px}
+  .card{padding:14px}
+  .card-title{font-size:13px}
+  .content{padding:12px;padding-bottom:80px}
+  .bar-label{min-width:80px;font-size:12px}
+}
 </style>
 </head>
 <body>
@@ -130,12 +194,12 @@ tr:hover td{background:#fafaf8}
   </div>
 
   <div class="content">
-    <!-- TABS (mobile) -->
-    <div class="tabs" id="mob-tabs" style="display:none">
-      <div class="tab active" onclick="switchTab('overview',this)">Обзор</div>
-      <div class="tab" onclick="switchTab('web',this)">Веб</div>
-      <div class="tab" onclick="switchTab('tg',this)">Telegram</div>
-      <div class="tab" onclick="switchTab('groups',this)">Группы</div>
+    <!-- TABS (mobile + desktop) -->
+    <div class="tabs" id="mob-tabs">
+      <div class="tab active" onclick="switchTab('overview',this)">📊 Обзор</div>
+      <div class="tab" onclick="switchTab('web',this)">🌐 Веб</div>
+      <div class="tab" onclick="switchTab('tg',this)">✈️ Telegram</div>
+      <div class="tab" onclick="switchTab('groups',this)">🎓 Группы</div>
     </div>
 
     <!-- OVERVIEW -->
@@ -163,10 +227,12 @@ tr:hover td{background:#fafaf8}
     <div class="panel" id="panel-web">
       <div class="table-card">
         <div class="card-head"><div class="card-title">Веб пользователи (Google OAuth)</div></div>
-        <table>
-          <thead><tr><th>Пользователь</th><th>Email</th><th>Группа</th><th>Регистрация</th><th>Последний визит</th></tr></thead>
-          <tbody id="tbl-web"></tbody>
-        </table>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Пользователь</th><th>Email</th><th>Группа</th><th>Регистрация</th><th>Последний визит</th></tr></thead>
+            <tbody id="tbl-web"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -174,10 +240,12 @@ tr:hover td{background:#fafaf8}
     <div class="panel" id="panel-tg">
       <div class="table-card">
         <div class="card-head"><div class="card-title">Пользователи Telegram бота</div></div>
-        <table>
-          <thead><tr><th>Имя</th><th>Username / Ссылка</th><th>ID</th><th>Группа</th><th>Регистрация</th><th>Последний запуск</th></tr></thead>
-          <tbody id="tbl-tg"></tbody>
-        </table>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Имя</th><th>Username</th><th>ID</th><th>Группа</th><th>Регистрация</th><th>Последний запуск</th></tr></thead>
+            <tbody id="tbl-tg"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -189,6 +257,25 @@ tr:hover td{background:#fafaf8}
       </div>
     </div>
   </div>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<div class="mobile-nav" id="mobile-nav">
+  <button class="mob-nav-item active" onclick="switchTab('overview',this)" data-tab="overview">
+    <span class="mob-nav-icon">📊</span>Обзор
+  </button>
+  <button class="mob-nav-item" onclick="switchTab('web',this)" data-tab="web">
+    <span class="mob-nav-icon">🌐</span>Веб
+  </button>
+  <button class="mob-nav-item" onclick="switchTab('tg',this)" data-tab="tg">
+    <span class="mob-nav-icon">✈️</span>Telegram
+  </button>
+  <button class="mob-nav-item" onclick="switchTab('groups',this)" data-tab="groups">
+    <span class="mob-nav-icon">🎓</span>Группы
+  </button>
+  <a class="mob-nav-item" href="/admin/logout">
+    <span class="mob-nav-icon">🔓</span>Выйти
+  </a>
 </div>
 
 <script>
@@ -207,14 +294,18 @@ function fmtDt(iso) {
 
 function switchTab(name, btn) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item,.tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-item,.tab,.mob-nav-item').forEach(b => b.classList.remove('active'));
   document.getElementById(`panel-${name}`).classList.add('active');
+  // Activate all matching buttons (sidebar + tabs + mobile nav)
+  document.querySelectorAll(`[data-tab="${name}"]`).forEach(b => b.classList.add('active'));
   if (btn) btn.classList.add('active');
 }
 
 function makeChart(id, type, labels, data, color) {
   if (charts[id]) charts[id].destroy();
-  charts[id] = new Chart(document.getElementById(id), {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  charts[id] = new Chart(canvas, {
     type,
     data: {
       labels,
@@ -234,7 +325,7 @@ function makeChart(id, type, labels, data, color) {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#aaa' } },
+        x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#aaa', maxTicksLimit: 7 } },
         y: { grid: { color: '#f0f0ec' }, ticks: { font: { size: 10 }, color: '#aaa' }, beginAtZero: true, precision: 0 }
       }
     }
@@ -257,13 +348,11 @@ async function loadStats() {
     document.getElementById('s-week').textContent  = d.week_visits;
     document.getElementById('s-views').textContent = d.today_views;
 
-    // Charts
     const labelV  = d.visits_chart.map(r => new Date(r.date).toLocaleDateString('ru',{day:'numeric',month:'short'}));
     const labelPV = d.views_chart.map(r => new Date(r.date).toLocaleDateString('ru',{day:'numeric',month:'short'}));
     makeChart('chart-v',  'bar',  labelV,  d.visits_chart.map(r=>r.n),     '#2563eb');
     makeChart('chart-pv', 'line', labelPV, d.views_chart.map(r=>r.count),  '#7c3aed');
 
-    // Web users table
     const tbw = document.getElementById('tbl-web');
     tbw.innerHTML = d.recent_web.length
       ? d.recent_web.map(u => `<tr>
@@ -271,16 +360,15 @@ async function loadStats() {
             ${u.picture
               ? `<img src="${u.picture}" class="avatar" onerror="this.style.display='none'">`
               : `<div class="av-fallback">${(u.name||'?')[0].toUpperCase()}</div>`}
-            <span style="font-weight:500">${u.name||'—'}</span>
+            <span style="font-weight:500;white-space:nowrap">${u.name||'—'}</span>
           </td>
-          <td class="text-muted text-sm">${u.email||'—'}</td>
+          <td class="text-muted text-sm" style="white-space:nowrap">${u.email||'—'}</td>
           <td>${u.group_name ? `<span class="badge badge-blue">${u.group_name}</span>` : '<span class="text-muted">—</span>'}</td>
-          <td class="text-muted text-sm">${fmt(u.created_at)}</td>
-          <td class="text-muted text-sm">${fmtDt(u.last_seen)}</td>
+          <td class="text-muted text-sm" style="white-space:nowrap">${fmt(u.created_at)}</td>
+          <td class="text-muted text-sm" style="white-space:nowrap">${fmtDt(u.last_seen)}</td>
         </tr>`).join('')
       : '<tr><td colspan="5" style="color:var(--muted);padding:20px;text-align:center">Нет пользователей</td></tr>';
 
-    // TG users table
     const tbt = document.getElementById('tbl-tg');
     tbt.innerHTML = d.tg_users.length
       ? d.tg_users.map(u => {
@@ -289,17 +377,16 @@ async function loadStats() {
             ? `<a href="https://t.me/${u.username}" target="_blank" class="tg-link">@${u.username}</a>`
             : '<span class="text-muted">—</span>';
           return `<tr>
-            <td style="font-weight:500">${fullName}</td>
+            <td style="font-weight:500;white-space:nowrap">${fullName}</td>
             <td>${uname}</td>
             <td class="text-muted text-sm"><code>${u.user_id}</code></td>
             <td>${u.group_name ? `<span class="badge badge-blue">${u.group_name}</span>` : '<span class="text-muted">—</span>'}</td>
-            <td class="text-muted text-sm">${fmt(u.created_at)}</td>
-            <td class="text-muted text-sm">${fmtDt(u.last_seen)}</td>
+            <td class="text-muted text-sm" style="white-space:nowrap">${fmt(u.created_at)}</td>
+            <td class="text-muted text-sm" style="white-space:nowrap">${fmtDt(u.last_seen)}</td>
           </tr>`;
         }).join('')
       : '<tr><td colspan="6" style="color:var(--muted);padding:20px;text-align:center">Нет пользователей бота</td></tr>';
 
-    // Groups bars
     const maxN = d.popular_groups.length ? d.popular_groups[0].n : 1;
     document.getElementById('groups-bars').innerHTML = d.popular_groups.length
       ? d.popular_groups.map(g => `
@@ -315,10 +402,13 @@ async function loadStats() {
   }
 }
 
-// Mobile tabs
-if (window.innerWidth <= 800) {
-  document.getElementById('mob-tabs').style.display = 'flex';
-}
+// Sync mobile nav active state
+document.querySelectorAll('.mob-nav-item[data-tab]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mob-nav-item').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
 
 loadStats();
 setInterval(loadStats, 30000);
