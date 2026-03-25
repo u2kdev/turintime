@@ -1,6 +1,6 @@
 """
 TTPU Timetable Web App
-pip install fastapi uvicorn authlib httpx itsdangerous python-multipart starlette aiogram
+pip install fastapi uvicorn authlib httpx itsdangerous python-multipart starlette aiogram playwright
 """
 import sqlite3, os, asyncio
 from datetime import datetime, date, timedelta
@@ -29,14 +29,14 @@ ENV           = load_env()
 SECRET_KEY    = ENV.get("SECRET_KEY", "ttpu-secret-change-me")
 GOOGLE_ID     = ENV.get("GOOGLE_CLIENT_ID", "")
 GOOGLE_SECRET = ENV.get("GOOGLE_CLIENT_SECRET", "")
-ADMIN_USER    = ENV.get("ADMIN_USERNAME", "umv0c")
-ADMIN_PASS    = ENV.get("ADMIN_PASSWORD", "sevinch")
-BASE_URL      = ENV.get("BASE_URL", "https://turintime.up.railway.app")
-AUTHOR_NAME   = ENV.get("AUTHOR_NAME", "umv0c")
+ADMIN_USER    = ENV.get("ADMIN_USERNAME", "admin")
+ADMIN_PASS    = ENV.get("ADMIN_PASSWORD", "admin123")
+BASE_URL      = ENV.get("BASE_URL", "http://localhost:8000")
+AUTHOR_NAME   = ENV.get("AUTHOR_NAME", "")
 AUTHOR_SUR    = ENV.get("AUTHOR_SURNAME", "")
-AUTHOR_TG     = ENV.get("AUTHOR_TG", "@vader_inc")
-AUTHOR_LABEL  = ENV.get("AUTHOR_TG_LABEL", "@vader_inc")
-ORG_NAME      = ENV.get("ORG_NAME", "VADER INC.")
+AUTHOR_TG     = ENV.get("AUTHOR_TG", "")
+AUTHOR_LABEL  = ENV.get("AUTHOR_TG_LABEL", "")
+ORG_NAME      = ENV.get("ORG_NAME", "")
 ORG_DESC      = ENV.get("ORG_DESC", "")
 
 # ── DATABASE ──────────────────────────────────────────────────────────────
@@ -46,12 +46,16 @@ def get_db():
     return c
 
 def init_db():
+    db_dir = os.path.dirname(DB_PATH)
+    if db_dir:
+        os.makedirs(db_dir, exist_ok=True)
     c = sqlite3.connect(DB_PATH)
     c.executescript("""
         CREATE TABLE IF NOT EXISTS web_users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             google_id TEXT UNIQUE, email TEXT, name TEXT, picture TEXT,
             group_id TEXT DEFAULT '', group_name TEXT DEFAULT '',
+            is_guest INTEGER DEFAULT 0,
             created_at TEXT, last_seen TEXT
         );
         CREATE TABLE IF NOT EXISTS web_visits (
@@ -66,7 +70,7 @@ def init_db():
             created_at TEXT, last_seen TEXT
         );
     """)
-    # Migrate tg_users
+    # Migrate
     existing = {row[1] for row in c.execute("PRAGMA table_info(tg_users)").fetchall()}
     for col, sql in {
         "username":   "ALTER TABLE tg_users ADD COLUMN username   TEXT DEFAULT ''",
@@ -78,8 +82,12 @@ def init_db():
         "last_seen":  "ALTER TABLE tg_users ADD COLUMN last_seen  TEXT",
     }.items():
         if col not in existing:
-            c.execute(sql)
-            print(f"  [migrate] tg_users += '{col}'")
+            c.execute(sql); print(f"  [migrate] tg_users += '{col}'")
+    # Migrate web_users
+    wu_existing = {row[1] for row in c.execute("PRAGMA table_info(web_users)").fetchall()}
+    if "is_guest" not in wu_existing:
+        c.execute("ALTER TABLE web_users ADD COLUMN is_guest INTEGER DEFAULT 0")
+        print("  [migrate] web_users += 'is_guest'")
     c.commit(); c.close()
 
 # ── USER HELPERS ──────────────────────────────────────────────────────────
@@ -89,12 +97,12 @@ def upsert_web_user(google_id, email, name, picture) -> dict:
     today = date.today().isoformat()
     row = c.execute("SELECT * FROM web_users WHERE google_id=?", (google_id,)).fetchone()
     if row:
-        c.execute("UPDATE web_users SET name=?,picture=?,last_seen=? WHERE google_id=?",
+        c.execute("UPDATE web_users SET name=?,picture=?,last_seen=?,is_guest=0 WHERE google_id=?",
                   (name, picture, now, google_id))
         c.commit()
         user = dict(c.execute("SELECT * FROM web_users WHERE google_id=?", (google_id,)).fetchone())
     else:
-        c.execute("INSERT INTO web_users (google_id,email,name,picture,created_at,last_seen) VALUES (?,?,?,?,?,?)",
+        c.execute("INSERT INTO web_users (google_id,email,name,picture,is_guest,created_at,last_seen) VALUES (?,?,?,?,0,?,?)",
                   (google_id, email, name, picture, now, now))
         c.commit()
         user = dict(c.execute("SELECT * FROM web_users WHERE google_id=?", (google_id,)).fetchone())
@@ -104,6 +112,18 @@ def upsert_web_user(google_id, email, name, picture) -> dict:
     c.execute("UPDATE page_views SET count=count+1 WHERE date=?", (today,))
     c.commit(); c.close()
     return user
+
+def create_guest_session() -> dict:
+    """Создаёт гостевого пользователя с временным ID в сессии"""
+    return {
+        "id": None,
+        "name": "Гость",
+        "email": "",
+        "picture": "",
+        "group_id": "",
+        "group_name": "",
+        "is_guest": True,
+    }
 
 def get_web_user(uid):
     r = get_db().execute("SELECT * FROM web_users WHERE id=?", (uid,)).fetchone()
@@ -122,15 +142,15 @@ def admin_stats():
     week_ago = (date.today() - timedelta(days=7)).isoformat()
     today_view = c.execute("SELECT count FROM page_views WHERE date=?", (today,)).fetchone()
     result = {
-        "total_web":    c.execute("SELECT COUNT(*) as n FROM web_users").fetchone()["n"],
-        "total_tg":     c.execute("SELECT COUNT(*) as n FROM tg_users").fetchone()["n"],
-        "today_visits": c.execute("SELECT COUNT(DISTINCT user_id) as n FROM web_visits WHERE date=?", (today,)).fetchone()["n"],
-        "week_visits":  c.execute("SELECT COUNT(DISTINCT user_id) as n FROM web_visits WHERE date>=?", (week_ago,)).fetchone()["n"],
-        "today_views":  today_view["count"] if today_view else 0,
-        "visits_chart": [dict(r) for r in c.execute("SELECT date, COUNT(DISTINCT user_id) as n FROM web_visits WHERE date >= date('now','-14 days') GROUP BY date ORDER BY date").fetchall()],
-        "views_chart":  [dict(r) for r in c.execute("SELECT date, count FROM page_views WHERE date >= date('now','-14 days') ORDER BY date").fetchall()],
-        "recent_web":   [dict(r) for r in c.execute("SELECT name,email,picture,group_name,created_at,last_seen FROM web_users ORDER BY last_seen DESC LIMIT 20").fetchall()],
-        "tg_users":     [dict(r) for r in c.execute("SELECT user_id,username,first_name,last_name,group_name,created_at,last_seen FROM tg_users ORDER BY last_seen DESC LIMIT 30").fetchall()],
+        "total_web":     c.execute("SELECT COUNT(*) as n FROM web_users WHERE is_guest=0").fetchone()["n"],
+        "total_tg":      c.execute("SELECT COUNT(*) as n FROM tg_users").fetchone()["n"],
+        "today_visits":  c.execute("SELECT COUNT(DISTINCT user_id) as n FROM web_visits WHERE date=?", (today,)).fetchone()["n"],
+        "week_visits":   c.execute("SELECT COUNT(DISTINCT user_id) as n FROM web_visits WHERE date>=?", (week_ago,)).fetchone()["n"],
+        "today_views":   today_view["count"] if today_view else 0,
+        "visits_chart":  [dict(r) for r in c.execute("SELECT date, COUNT(DISTINCT user_id) as n FROM web_visits WHERE date >= date('now','-14 days') GROUP BY date ORDER BY date").fetchall()],
+        "views_chart":   [dict(r) for r in c.execute("SELECT date, count FROM page_views WHERE date >= date('now','-14 days') ORDER BY date").fetchall()],
+        "recent_web":    [dict(r) for r in c.execute("SELECT name,email,picture,group_name,created_at,last_seen,is_guest FROM web_users ORDER BY last_seen DESC LIMIT 20").fetchall()],
+        "tg_users":      [dict(r) for r in c.execute("SELECT user_id,username,first_name,last_name,group_name,created_at,last_seen FROM tg_users ORDER BY last_seen DESC LIMIT 30").fetchall()],
         "popular_groups":[dict(r) for r in c.execute("SELECT group_name, COUNT(*) as n FROM web_users WHERE group_name!='' GROUP BY group_name ORDER BY n DESC LIMIT 10").fetchall()],
     }
     c.close(); return result
@@ -155,6 +175,60 @@ def db_meta():
     u = c.execute("SELECT value FROM meta WHERE key='updated_at'").fetchone()
     return g, (u["value"][:10] if u else "—")
 
+# ── SCRAPER (для ручного обновления и авто-обновления) ────────────────────
+scraper_status = {"running": False, "last_result": None, "last_run": None}
+
+async def run_scraper_task():
+    """Запускает debug.py как подпроцесс"""
+    if scraper_status["running"]:
+        return {"ok": False, "error": "Скрапер уже запущен"}
+
+    scraper_status["running"] = True
+    scraper_status["last_result"] = None
+    try:
+        script = "debug.py"
+        if not os.path.exists(script):
+            scraper_status["last_result"] = "❌ debug.py не найден"
+            return {"ok": False, "error": "debug.py не найден"}
+
+        proc = await asyncio.create_subprocess_exec(
+            "python", script,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
+        )
+        stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=120)
+        output = stdout.decode("utf-8", errors="replace")
+
+        if proc.returncode == 0:
+            g, upd = db_meta()
+            msg = f"✓ Обновлено: {g} групп · {upd}"
+            scraper_status["last_result"] = msg
+            scraper_status["last_run"] = datetime.now().isoformat()
+            print(f"[scraper] {msg}")
+            return {"ok": True, "message": msg, "output": output[-500:]}
+        else:
+            err = f"❌ Ошибка (код {proc.returncode})"
+            scraper_status["last_result"] = err
+            print(f"[scraper] {err}\n{output[-300:]}")
+            return {"ok": False, "error": err, "output": output[-500:]}
+    except asyncio.TimeoutError:
+        scraper_status["last_result"] = "❌ Таймаут (>120с)"
+        return {"ok": False, "error": "Таймаут"}
+    except Exception as e:
+        scraper_status["last_result"] = f"❌ {e}"
+        return {"ok": False, "error": str(e)}
+    finally:
+        scraper_status["running"] = False
+
+async def auto_update_loop():
+    """Авто-обновление каждые 24 часа"""
+    print("[auto-update] Запущено. Обновление каждые 24 часа.")
+    while True:
+        await asyncio.sleep(24 * 60 * 60)
+        print(f"[auto-update] Запускаем обновление расписания... ({datetime.now().strftime('%Y-%m-%d %H:%M')})")
+        result = await run_scraper_task()
+        print(f"[auto-update] Результат: {result.get('message') or result.get('error')}")
+
 # ── OAUTH ─────────────────────────────────────────────────────────────────
 oauth = OAuth()
 if GOOGLE_ID:
@@ -165,6 +239,12 @@ if GOOGLE_ID:
     )
 
 def current_user(request: Request):
+    # Гость из сессии
+    if request.session.get("is_guest"):
+        return {"id": None, "name": "Гость", "email": "", "picture": "",
+                "group_id": request.session.get("guest_group_id",""),
+                "group_name": request.session.get("guest_group_name",""),
+                "is_guest": True}
     uid = request.session.get("user_id")
     return get_web_user(uid) if uid else None
 
@@ -175,21 +255,30 @@ def is_admin(request: Request):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
-    task = None
+    task_bot = None
+    task_auto = None
     try:
         from bot import run_bot, load_token
         if load_token():
-            print("✓ Запускаем бота...")
-            task = asyncio.create_task(run_bot())
+            print("✓ Запускаем Telegram бота...")
+            task_bot = asyncio.create_task(run_bot())
+            await asyncio.sleep(0.5)
         else:
-            print("⚠️  BOT_TOKEN не найден")
+            print("⚠️  BOT_TOKEN не задан — бот не запущен")
     except Exception as e:
         print(f"⚠️  Бот: {e}")
+        import traceback; traceback.print_exc()
+
+    # Запускаем авто-обновление расписания
+    task_auto = asyncio.create_task(auto_update_loop())
+
     yield
-    if task:
-        task.cancel()
-        try: await task
-        except asyncio.CancelledError: pass
+
+    for t in [task_bot, task_auto]:
+        if t and not t.done():
+            t.cancel()
+            try: await t
+            except asyncio.CancelledError: pass
 
 app = FastAPI(lifespan=lifespan)
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY, max_age=60*60*24*30)
@@ -218,18 +307,22 @@ async def admin_logout(request: Request):
     request.session.pop("is_admin", None)
     return RedirectResponse("/")
 
-# ── AUTH: EMAIL/PASSWORD (admin login) ───────────────────────────────────
+# ── AUTH ──────────────────────────────────────────────────────────────────
 @app.post("/api/login")
 async def api_login(request: Request):
     body = await request.json()
-    username = body.get("username", "").strip()
-    password = body.get("password", "").strip()
-    if username == ADMIN_USER and password == ADMIN_PASS:
+    if body.get("username","").strip() == ADMIN_USER and body.get("password","").strip() == ADMIN_PASS:
         request.session["is_admin"] = True
         return JSONResponse({"ok": True, "redirect": "/admin"})
     return JSONResponse({"ok": False, "error": "Неверные данные"}, status_code=401)
 
-# ── AUTH: GOOGLE ──────────────────────────────────────────────────────────
+@app.post("/api/guest")
+async def api_guest(request: Request):
+    """Войти как гость — только просмотр расписания"""
+    request.session["is_guest"] = True
+    request.session.pop("user_id", None)
+    return JSONResponse({"ok": True, "redirect": "/timetable"})
+
 @app.get("/login")
 async def login(request: Request):
     if not GOOGLE_ID:
@@ -244,8 +337,10 @@ async def auth_callback(request: Request):
         user     = upsert_web_user(userinfo["sub"], userinfo.get("email",""),
                                    userinfo.get("name",""), userinfo.get("picture",""))
         request.session["user_id"] = user["id"]
+        request.session.pop("is_guest", None)
         return RedirectResponse("/timetable")
     except Exception as e:
+        print(f"OAuth error: {e}")
         return RedirectResponse("/?error=oauth")
 
 @app.get("/logout")
@@ -253,7 +348,7 @@ async def logout(request: Request):
     request.session.clear()
     return RedirectResponse("/")
 
-# ── API ───────────────────────────────────────────────────────────────────
+# ── API: USER ─────────────────────────────────────────────────────────────
 @app.get("/api/me")
 async def api_me(request: Request):
     user = current_user(request)
@@ -261,12 +356,13 @@ async def api_me(request: Request):
         return JSONResponse({"authenticated": False, "is_admin": is_admin(request)})
     return JSONResponse({
         "authenticated": True,
-        "is_admin":  is_admin(request),
-        "name":      user["name"],
-        "email":     user["email"],
-        "picture":   user["picture"],
-        "group_id":  user["group_id"],
-        "group_name":user["group_name"],
+        "is_admin":   is_admin(request),
+        "is_guest":   bool(user.get("is_guest")),
+        "name":       user["name"],
+        "email":      user.get("email",""),
+        "picture":    user.get("picture",""),
+        "group_id":   user.get("group_id",""),
+        "group_name": user.get("group_name",""),
     })
 
 @app.post("/api/me/group")
@@ -274,12 +370,20 @@ async def api_set_group(request: Request):
     user = current_user(request)
     if not user: raise HTTPException(401)
     body = await request.json()
-    c = get_db()
-    c.execute("UPDATE web_users SET group_id=?,group_name=? WHERE id=?",
-              (body.get("group_id",""), body.get("group_name",""), user["id"]))
-    c.commit(); c.close()
+    gid   = body.get("group_id","")
+    gname = body.get("group_name","")
+    if user.get("is_guest"):
+        # Для гостя сохраняем выбор в сессии
+        request.session["guest_group_id"]   = gid
+        request.session["guest_group_name"] = gname
+    else:
+        c = get_db()
+        c.execute("UPDATE web_users SET group_id=?,group_name=? WHERE id=?",
+                  (gid, gname, user["id"]))
+        c.commit(); c.close()
     return {"ok": True}
 
+# ── API: SCHEDULE ─────────────────────────────────────────────────────────
 @app.get("/api/groups")
 async def api_groups(): return all_groups()
 
@@ -308,16 +412,40 @@ async def api_config():
         "org_desc":     ORG_DESC,
     }
 
+# ── API: ADMIN ────────────────────────────────────────────────────────────
 @app.get("/api/admin/stats")
 async def api_admin_stats(request: Request):
     if not is_admin(request): raise HTTPException(403)
     return admin_stats()
 
+@app.post("/api/admin/scrape")
+async def api_admin_scrape(request: Request):
+    """Ручной запуск обновления расписания из админки"""
+    if not is_admin(request): raise HTTPException(403)
+    if scraper_status["running"]:
+        return JSONResponse({"ok": False, "error": "Скрапер уже запущен, подождите..."})
+    # Запускаем в фоне чтобы не блокировать HTTP-ответ
+    asyncio.create_task(run_scraper_task())
+    return JSONResponse({"ok": True, "message": "Обновление запущено..."})
+
+@app.get("/api/admin/scrape/status")
+async def api_scrape_status(request: Request):
+    if not is_admin(request): raise HTTPException(403)
+    return JSONResponse({
+        "running":     scraper_status["running"],
+        "last_result": scraper_status["last_result"],
+        "last_run":    scraper_status["last_run"],
+    })
+
+# ── MAIN ──────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)  # создаём папку data/
-    init_db()  # создаём таблицы если нет
+    db_dir = os.path.dirname(DB_PATH)
+    if db_dir: os.makedirs(db_dir, exist_ok=True)
+    if not os.path.exists(DB_PATH):
+        print(f"❌ База {DB_PATH} не найдена! Запусти: python debug.py"); exit(1)
     g, upd = db_meta()
     print(f"✓ База: {g} групп · {upd}")
+    print(f"✓ Авто-обновление каждые 24 часа включено")
     print(f"✓ Сервер → {BASE_URL}")
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=False)

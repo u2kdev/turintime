@@ -9,7 +9,8 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.filters import CommandStart
 from aiogram.fsm.storage.memory import MemoryStorage
 
-DB_PATH   = "data/timetable.db"
+# DB_PATH читается из .env или переменной окружения — тот же путь что в app.py
+DB_PATH   = os.getenv("DB_PATH", "data/timetable.db")
 DAY_ORDER = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]
 DAY_RU    = {
     "Monday":"Понедельник","Tuesday":"Вторник","Wednesday":"Среда",
@@ -177,7 +178,7 @@ def build_dp():
         if edit: await target.edit_text(text, reply_markup=kb)
         else:    await target.answer(text, reply_markup=kb)
 
-    async def show_home(target, uid, gid, gname, tg_user=None, edit=False):
+    async def show_home(target, uid, gid, gname, edit=False):
         update_tg_group(uid, gid, gname)
         schedule = group_schedule(gid)
         today_n  = len(schedule.get(today_en(), []))
@@ -191,9 +192,11 @@ def build_dp():
     @dp.message(CommandStart())
     async def cmd_start(msg: Message):
         u = msg.from_user
-        save_tg_user(u.id, u.username or "", u.first_name or "", u.last_name or "")
-        if not os.path.exists(DB_PATH):
-            await msg.answer("⚠️ База не найдена.\n<code>python debug.py</code>"); return
+        try:
+            save_tg_user(u.id, u.username or "", u.first_name or "", u.last_name or "")
+        except Exception as e:
+            print(f"[bot] save_tg_user error: {e}")
+
         saved = load_tg_user(u.id)
         if saved and saved.get("group_id"):
             await msg.answer(f"👋 Привет, <b>{u.first_name}</b>!\nГруппа: <b>{saved['group_name']}</b>")
@@ -265,16 +268,29 @@ def load_token():
                 token = line.split("=",1)[1].strip(); break
     return token
 
+# ── RUN ───────────────────────────────────────────────────────────────────
 async def run_bot():
     token = load_token()
     if not token:
-        print("❌ BOT_TOKEN не найден"); return
+        print("❌ BOT_TOKEN не найден в .env"); return
 
-    bot = Bot(token=token, default=DefaultBotProperties(parse_mode="HTML"))
-    dp  = build_dp()
-    g, upd = db_meta()
-    print(f"✓ Бот запущен · {g} групп · обновлено {upd}")
-    await dp.start_polling(bot, skip_updates=True)
+    # Создаём папку data/ если нужно
+    db_dir = os.path.dirname(DB_PATH)
+    if db_dir:
+        os.makedirs(db_dir, exist_ok=True)
+
+    if not os.path.exists(DB_PATH):
+        print(f"❌ База {DB_PATH} не найдена. Запусти: python debug.py"); return
+
+    try:
+        bot = Bot(token=token, default=DefaultBotProperties(parse_mode="HTML"))
+        dp  = build_dp()
+        g, upd = db_meta()
+        print(f"✓ Бот запущен · {g} групп · обновлено {upd}")
+        await dp.start_polling(bot, skip_updates=True)
+    except Exception as e:
+        print(f"❌ Бот упал: {e}")
+        import traceback; traceback.print_exc()
 
 if __name__ == "__main__":
     asyncio.run(run_bot())
