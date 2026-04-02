@@ -19,7 +19,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);heig
 .week-nav{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .week-btn{width:28px;height:28px;border:1px solid var(--border);border-radius:7px;background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:background .1s;flex-shrink:0}
 .week-btn:hover{background:var(--bg)}
-.week-label{font-size:14px;font-weight:600;min-width:140px;text-align:center;white-space:nowrap}
+.week-select{height:28px;padding:0 8px;border:1px solid var(--border);border-radius:7px;background:var(--white);color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;outline:none;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.week-select:focus{border-color:var(--blue)}
 .today-btn{padding:5px 12px;background:var(--blue);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;flex-shrink:0}
 .topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0}
 .user-pill{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:13px;white-space:nowrap}
@@ -161,11 +162,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);heig
   </div>
   <div class="topbar-center">
     <div class="week-nav">
-      <button class="week-btn" onclick="shiftWeek(-1)">‹</button>
-      <span class="week-label" id="week-label">—</span>
-      <button class="week-btn" onclick="shiftWeek(1)">›</button>
+      <button class="week-btn" onclick="stepWeek(-1)" title="Предыдущая неделя">‹</button>
+      <select class="week-select" id="week-select" onchange="switchWeekByTtNum(this.value)">
+        <option>Загрузка...</option>
+      </select>
+      <button class="week-btn" onclick="stepWeek(1)" title="Следующая неделя">›</button>
     </div>
-    <button class="today-btn" onclick="goToday()">Сегодня</button>
+    <button class="today-btn" onclick="goToCurrentWeek()">Сегодня</button>
     <button onclick="openGroupPicker()" style="padding:5px 12px;border:1px solid var(--border);border-radius:7px;font-size:12px;background:var(--white);cursor:pointer;font-family:inherit;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="group-btn">— Группа —</button>
   </div>
   <div class="topbar-right">
@@ -231,9 +234,86 @@ const colorMap={};let colorIdx=0;
 function subjectColor(s){if(!colorMap[s])colorMap[s]=COLORS[colorIdx++%COLORS.length];return colorMap[s]}
 function subjectBorderColor(s){const keys=Object.keys(colorMap),idx=keys.indexOf(s);return BORDER_COLORS[idx%BORDER_COLORS.length]||'#2563eb'}
 
-let currentGroupId='',currentGroupName='',currentSchedule={},allGroupsList=[],weekOffset=0,activeMobileDay='';
+let currentGroupId='',currentGroupName='',currentSchedule={},allGroupsList=[],activeMobileDay='';
+let weeksList=[], currentWeekIdx=0;
 const today=new Date();
 const todayStr=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][today.getDay()];
+
+// ── WEEK HELPERS ──────────────────────────────────────────────────────────
+function currentWeek(){ return weeksList[currentWeekIdx] || null; }
+
+function getMondayOfSelectedWeek(){
+  const w = currentWeek();
+  if(w && w.datefrom){
+    const d = new Date(w.datefrom + 'T00:00:00');
+    // datefrom might not be Monday — find Monday of that week
+    const day = d.getDay(), diff = day===0 ? -6 : 1-day;
+    d.setDate(d.getDate()+diff); d.setHours(0,0,0,0); return d;
+  }
+  // fallback: current calendar week
+  const d=new Date(today),day=d.getDay(),diff=day===0?-6:1-day;
+  d.setDate(d.getDate()+diff); d.setHours(0,0,0,0); return d;
+}
+
+function isSelectedWeekCurrent(){
+  const w = currentWeek();
+  if(!w || !w.datefrom) return true;
+  const mon = getMondayOfSelectedWeek();
+  const sat = new Date(mon); sat.setDate(mon.getDate()+5);
+  return today >= mon && today <= sat;
+}
+
+async function loadWeeks(){
+  try{
+    weeksList = await fetch('/api/weeks').then(r=>r.json());
+    // Find default or current week
+    let defIdx = weeksList.findIndex(w=>w.is_default);
+    if(defIdx<0) defIdx=0;
+    currentWeekIdx = defIdx;
+    renderWeekSelect();
+  }catch(e){ console.warn('Could not load weeks', e); }
+}
+
+function renderWeekSelect(){
+  const sel = document.getElementById('week-select');
+  if(!weeksList.length){ sel.innerHTML='<option>—</option>'; return; }
+  sel.innerHTML = weeksList.map((w,i)=>{
+    // Extract short label like "Week 12" from text like "week 12 / 2.1_25_26 (29/3 - 5/4/2026)"
+    const match = w.week_text.match(/week\s*(\d+)/i);
+    const shortLabel = match ? `Week ${match[1]}` : w.week_text;
+    const dateRange = w.week_text.match(/\(([^)]+)\)/);
+    const label = dateRange ? `${shortLabel}  ${dateRange[1]}` : shortLabel;
+    return `<option value="${w.tt_num}" ${i===currentWeekIdx?'selected':''}>${label}</option>`;
+  }).join('');
+}
+
+async function switchWeekByTtNum(ttNum){
+  const idx = weeksList.findIndex(w=>w.tt_num===ttNum);
+  if(idx<0) return;
+  currentWeekIdx = idx;
+  renderWeekSelect();
+  renderCalHeader();
+  if(currentGroupId) await loadGroup(currentGroupId, currentGroupName, false);
+}
+
+function stepWeek(dir){
+  const newIdx = currentWeekIdx + dir;
+  if(newIdx<0 || newIdx>=weeksList.length) return;
+  currentWeekIdx = newIdx;
+  renderWeekSelect();
+  renderCalHeader();
+  if(currentGroupId) loadGroup(currentGroupId, currentGroupName, false);
+}
+
+function goToCurrentWeek(){
+  let idx = weeksList.findIndex(w=>w.is_default);
+  if(idx<0) idx=0;
+  currentWeekIdx = idx;
+  renderWeekSelect();
+  renderCalHeader();
+  if(DAYS.includes(todayStr)) switchMobileDay(todayStr);
+  if(currentGroupId) loadGroup(currentGroupId, currentGroupName, false);
+}
 
 async function init(){
   const[me,groups,meta]=await Promise.all([fetch('/api/me').then(r=>r.json()),fetch('/api/groups').then(r=>r.json()),fetch('/api/meta').then(r=>r.json())]);
@@ -242,11 +322,12 @@ async function init(){
   allGroupsList=groups;renderSidebarGroups(groups);renderPickerGroups(groups);
   document.getElementById('sidebar-footer').textContent=`${meta.total_groups} групп · ${meta.updated_at}`;
   activeMobileDay=DAYS.includes(todayStr)?todayStr:'Monday';
+  await loadWeeks();
   if(me.group_id){await loadGroup(me.group_id,me.group_name)}else{renderCalendarEmpty();renderMobileDayTabs()}
-  renderCalHeader();updateWeekLabel();startNowLine();
+  renderCalHeader();startNowLine();
 }
 
-async function loadGroup(gid,gname){
+async function loadGroup(gid,gname,saveGroup=true){
   currentGroupId=gid;currentGroupName=gname;
   document.getElementById('group-btn').textContent=gname;
   document.getElementById('mob-group-btn').textContent='📅 '+gname;
@@ -254,9 +335,11 @@ async function loadGroup(gid,gname){
   document.getElementById('cal-body').innerHTML='<div class="loading"><div class="spinner"></div> Загрузка...</div>';
   document.getElementById('mobile-lessons').innerHTML='<div class="loading"><div class="spinner" style="width:16px;height:16px;border-width:2px"></div> Загрузка...</div>';
   try{
-    const data=await fetch(`/api/timetable/${encodeURIComponent(gid)}`).then(r=>r.json());
+    const w=currentWeek();
+    const url=`/api/timetable/${encodeURIComponent(gid)}${w?'?week='+encodeURIComponent(w.tt_num):''}`;
+    const data=await fetch(url).then(r=>r.json());
     currentSchedule=data.schedule||{};renderCalBody();renderMobileDayTabs();renderMobileLessons(activeMobileDay);
-    fetch('/api/me/group',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({group_id:gid,group_name:gname})});
+    if(saveGroup) fetch('/api/me/group',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({group_id:gid,group_name:gname})});
   }catch(e){
     document.getElementById('cal-body').innerHTML='<div class="empty-state"><div class="empty-icon">⚠️</div>Ошибка загрузки</div>';
     document.getElementById('mobile-lessons').innerHTML='<div class="ml-empty"><span style="font-size:28px;opacity:.3">⚠️</span><span>Ошибка загрузки</span></div>';
@@ -278,7 +361,7 @@ function currentPeriod(){
 }
 
 function renderMobileLessons(day){
-  const lessons=currentSchedule[day]||[],container=document.getElementById('mobile-lessons'),nowPeriod=(day===todayStr&&weekOffset===0)?currentPeriod():0;
+  const lessons=currentSchedule[day]||[],container=document.getElementById('mobile-lessons'),nowPeriod=(day===todayStr&&isSelectedWeekCurrent())?currentPeriod():0;
   if(!currentGroupId){container.innerHTML='<div class="ml-empty"><span style="font-size:36px;opacity:.3">📅</span><span>Выбери группу</span></div>';return}
   if(!lessons.length){container.innerHTML='<div class="ml-empty"><span style="font-size:36px;opacity:.3">🎉</span><span>Пар нет — свободный день!</span></div>';return}
   lessons.forEach(l=>subjectColor(l.subject_name||l.subject_short||''));
@@ -294,7 +377,7 @@ function renderMobileLessons(day){
 }
 
 function renderCalHeader(){
-  const monday=getMondayOfWeek(weekOffset),el=document.getElementById('cal-header');
+  const monday=getMondayOfSelectedWeek(),el=document.getElementById('cal-header');
   let html='<div class="cal-header-cell" style="border-right:1px solid var(--border)"></div>';
   DAYS.forEach((day,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);const isToday=isSameDay(d,today);html+=`<div class="cal-header-cell${isToday?' today':''}"><span class="cal-day-num">${d.getDate()}</span><span class="cal-day-name">${DAYS_RU[day]}</span></div>`});
   el.innerHTML=html;
@@ -320,13 +403,10 @@ function renderCalBody(){
 function renderCalendarEmpty(){document.getElementById('cal-body').innerHTML='<div class="empty-state"><div class="empty-icon">📅</div>Выбери группу слева</div>'}
 
 function getMondayOfWeek(offset=0){const d=new Date(today),day=d.getDay(),diff=day===0?-6:1-day;d.setDate(d.getDate()+diff+offset*7);d.setHours(0,0,0,0);return d}
-function updateWeekLabel(){const mon=getMondayOfWeek(weekOffset),sat=new Date(mon);sat.setDate(mon.getDate()+5);const fmt=d=>d.toLocaleDateString('ru',{day:'numeric',month:'short'});document.getElementById('week-label').textContent=`${fmt(mon)} – ${fmt(sat)}`}
-function shiftWeek(d){weekOffset+=d;updateWeekLabel();renderCalHeader()}
-function goToday(){weekOffset=0;updateWeekLabel();renderCalHeader();if(DAYS.includes(todayStr))switchMobileDay(todayStr)}
 function isSameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
 
 function positionNowLine(){
-  if(weekOffset!==0)return;const now=new Date(),mins=now.getHours()*60+now.getMinutes();
+  if(!isSelectedWeekCurrent())return;const now=new Date(),mins=now.getHours()*60+now.getMinutes();
   if(mins<540||mins>1300)return;
   const pct=(mins-540)/(1300-540),grid=document.getElementById('cal-grid');if(!grid)return;
   const top=pct*SLOTS.length*80,todayIdx=DAYS.indexOf(todayStr);if(todayIdx<0)return;

@@ -7,6 +7,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Устанавливаем браузер Chromium для Python-библиотеки playwright
+RUN playwright install chromium
+
+# Создаём папку для баз данных
+RUN mkdir -p /app/data
+
 # Копируем весь проект
 COPY . .
 
