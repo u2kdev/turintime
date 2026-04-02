@@ -2,7 +2,7 @@
 TTPU Timetable Web App
 pip install fastapi uvicorn authlib httpx itsdangerous python-multipart starlette aiogram
 """
-import sqlite3, os, asyncio
+import sqlite3, os, asyncio, sys
 from datetime import datetime, date, timedelta
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException
@@ -135,15 +135,38 @@ def all_groups():
     return [dict(r) for r in
             tt_db().execute("SELECT id,name FROM groups ORDER BY name").fetchall()]
 
-def group_schedule(gid):
-    rows = tt_db().execute("""
-        SELECT day, day_idx, period, time_start, time_end,
-               subject_name, subject_short, teacher_name, room_name
-        FROM lessons WHERE group_id=? ORDER BY day_idx, period
-    """, (gid,)).fetchall()
+def group_schedule(gid, tt_num=None):
+    c = tt_db()
+    if tt_num:
+        rows = c.execute("""
+            SELECT day, day_idx, period, time_start, time_end,
+                   subject_name, subject_short, teacher_name, room_name
+            FROM lessons WHERE group_id=? AND tt_num=? ORDER BY day_idx, period
+        """, (gid, tt_num)).fetchall()
+    else:
+        default = c.execute("SELECT tt_num FROM weeks WHERE is_default=1").fetchone()
+        if default:
+            rows = c.execute("""
+                SELECT day, day_idx, period, time_start, time_end,
+                       subject_name, subject_short, teacher_name, room_name
+                FROM lessons WHERE group_id=? AND tt_num=? ORDER BY day_idx, period
+            """, (gid, default["tt_num"])).fetchall()
+        else:
+            rows = c.execute("""
+                SELECT day, day_idx, period, time_start, time_end,
+                       subject_name, subject_short, teacher_name, room_name
+                FROM lessons WHERE group_id=? ORDER BY day_idx, period
+            """, (gid,)).fetchall()
     s = {}
     for r in rows: s.setdefault(r["day"], []).append(dict(r))
     return s
+
+def all_weeks():
+    if not os.path.exists(TIMETABLE_DB):
+        return []
+    c = tt_db()
+    rows = c.execute("SELECT tt_num, week_text, datefrom, is_default FROM weeks ORDER BY datefrom").fetchall()
+    return [dict(r) for r in rows]
 
 def tt_meta():
     if not os.path.exists(TIMETABLE_DB):
@@ -189,10 +212,10 @@ async def run_scraper_task():
             scraper_status["last_result"] = "❌ debug.py не найден"
             return {"ok": False, "error": "debug.py не найден"}
         proc = await asyncio.create_subprocess_exec(
-            "python", script,
+            sys.executable, script,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.STDOUT,
-            env={**os.environ, "TIMETABLE_DB": TIMETABLE_DB},
+            env={**os.environ, "TIMETABLE_DB": TIMETABLE_DB, "PYTHONIOENCODING": "utf-8"},
         )
         stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=120)
         output = stdout.decode("utf-8", errors="replace")
@@ -379,20 +402,29 @@ async def api_set_group(request: Request):
     return {"ok": True}
 
 # ── API: SCHEDULE ──────────────────────────────────────────────────────────
+@app.get("/api/weeks")
+async def api_weeks(): return all_weeks()
+
 @app.get("/api/groups")
 async def api_groups(): return all_groups()
 
 @app.get("/api/timetable/{group_id:path}")
-async def api_timetable(group_id: str, request: Request):
+async def api_timetable(group_id: str, request: Request, week: str = None):
     if not current_user(request): raise HTTPException(401)
     if not os.path.exists(TIMETABLE_DB): raise HTTPException(503, "Расписание ещё не загружено")
     c = tt_db()
     g = c.execute("SELECT * FROM groups WHERE id=?", (group_id,)).fetchone()
     if not g: raise HTTPException(404)
     meta = c.execute("SELECT value FROM meta WHERE key='updated_at'").fetchone()
+    # Resolve which week to serve
+    resolved_week = week
+    if not resolved_week:
+        dw = c.execute("SELECT tt_num FROM weeks WHERE is_default=1").fetchone()
+        resolved_week = dw["tt_num"] if dw else None
     return {"group_id": group_id, "group_name": g["name"],
+            "tt_num": resolved_week,
             "updated_at": meta["value"] if meta else "",
-            "schedule": group_schedule(group_id)}
+            "schedule": group_schedule(group_id, resolved_week)}
 
 @app.get("/api/meta")
 async def api_meta():
