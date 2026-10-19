@@ -12,6 +12,7 @@ __pycache__/
 *.log
 README.md
 *.md
+docs/
 Dockerfile
 docker-compose.yml
 .venv/

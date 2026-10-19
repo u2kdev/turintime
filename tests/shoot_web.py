@@ -75,6 +75,23 @@ async def main():
         await m.screenshot(path=f"{OUT}/13-m-menu.png")
         await m.click("#menu-close")
 
+        # справочник групп
+        await m.goto(BASE + "/browse/class", wait_until="networkidle")
+        await m.wait_for_timeout(900)
+        await m.screenshot(path=f"{OUT}/15-m-browse.png", full_page=True)
+
+        # тёмная тема на телефоне
+        await m.click("#btn-theme")
+        await m.wait_for_timeout(500)
+        await m.goto(BASE, wait_until="networkidle")
+        await m.wait_for_timeout(1200)
+        await m.screenshot(path=f"{OUT}/16-m-home-dark.png", full_page=True)
+        await m.goto(BASE + "/class/*98", wait_until="networkidle")
+        await m.wait_for_timeout(1500)
+        await m.screenshot(path=f"{OUT}/17-m-week-dark.png", full_page=True)
+        await m.click("#btn-theme")
+        await m.wait_for_timeout(300)
+
         # полноценный офлайн: отключаем сеть и перезагружаем
         await m.goto(BASE + "/class/*98", wait_until="networkidle")
         await m.wait_for_timeout(1200)
