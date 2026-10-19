@@ -1,9 +1,14 @@
 """Проверка бота без Telegram: импорт, клавиатуры, тексты, логика уведомлений."""
+import os
 import sys
+import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+# Тест пишет пользователей: уводим базу во временный файл, чтобы не трогать рабочие данные.
+os.environ["USERS_DB"] = str(Path(tempfile.gettempdir()) / "ttpu-test-users.db")
 
 from turin import db, schedule  # noqa: E402
 from turin.bot import keyboards as kb  # noqa: E402
