@@ -1,0 +1,18 @@
+# Не тянем в образ то, что нужно только локально
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+data/
+tests/
+scripts/
+__pycache__/
+*.py[cod]
+*.log
+README.md
+*.md
+Dockerfile
+docker-compose.yml
+.venv/
+venv/

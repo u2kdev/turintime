@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Данные и секреты
+.env
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/*.json
+
+# Иде / ОС
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Логи и временные файлы
+*.log
+tmp/

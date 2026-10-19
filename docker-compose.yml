@@ -1,0 +1,25 @@
+services:
+  app:
+    build: .
+    image: ttpu-timetable:latest
+    container_name: ttpu-timetable
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Значения ниже перекрывают .env: внутри контейнера пути и слушатель другие.
+      HOST: 0.0.0.0
+      PORT: 8000
+      DATA_DIR: /app/data
+      TIMETABLE_DB: /app/data/timetable.db
+      USERS_DB: /app/data/users.db
+      TIMEZONE: Asia/Tashkent
+      # BASE_URL должен указывать на адрес, по которому приложение доступно снаружи.
+      BASE_URL: ${BASE_URL:-http://localhost:8000}
+    volumes:
+      - ttpu-data:/app/data
+
+volumes:
+  ttpu-data:

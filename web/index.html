@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="ru" data-theme="light" data-lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TTPU · Расписание</title>
+<meta name="description" content="Расписание занятий Турниского политехнического университета в Ташкенте: группы, преподаватели, аудитории. Работает офлайн.">
+<meta name="theme-color" content="#F4F1EA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0D0C0B" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TTPU">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/favicon.png" sizes="64x64">
+<link rel="icon" href="/icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
+<link rel="stylesheet" href="/assets/app.css">
+</head>
+<body>
+<a class="skip-link" href="#main" data-i18n="a11y.skip">Перейти к содержанию</a>
+<div class="grain" aria-hidden="true"></div>
+<div class="glow" aria-hidden="true"></div>
+
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.2A8.4 8.4 0 1 1 9.8 4a6.9 6.9 0 0 0 10.2 10.2z"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M14.5 6l-6 6 6 6"/></symbol>
+  <symbol id="i-next" viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.4V12l3.2 2"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s6.5-5.4 6.5-10.2A6.5 6.5 0 0 0 5.5 10.8C5.5 15.6 12 21 12 21z"/><circle cx="12" cy="10.6" r="2.4"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.6" r="3.6"/><path d="M5.2 19.4c.9-3.2 3.6-4.9 6.8-4.9s5.9 1.7 6.8 4.9"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.6" y="4.4" width="16.8" height="15.2" rx="3"/><path d="M3.6 9.4h16.8M9 9.4V19.6M15 9.4V19.6"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8.4 7h11M8.4 12h11M8.4 17h11M4.6 7h.01M4.6 12h.01M4.6 17h.01"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.6" y="5.2" width="16.8" height="14.4" rx="3"/><path d="M3.6 10h16.8M8.4 3.4v3.2M15.6 3.4v3.2"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.4 2.8L5.6 13.6h5l-.6 7.6 8-11.2h-5.2z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6.6 17.4h10.8l-1.2-2.1V10a4.2 4.2 0 0 0-8.4 0v5.3z"/><path d="M10.4 20.2a1.8 1.8 0 0 0 3.2 0"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v10.6M7.6 10.6L12 15l4.4-4.4M4.6 19.4h14.8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.6l4.4 4.4L19 7"/></symbol>
+  <symbol id="i-cloud-off" viewBox="0 0 24 24"><path d="M4 4l16 16"/><path d="M7.4 7.6A4.6 4.6 0 0 0 8 16.6h8.4a3.9 3.9 0 0 0 2.4-.9M9.6 4.6A4.6 4.6 0 0 1 17.4 8a4 4 0 0 1-.6 7.8"/></symbol>
+  <symbol id="i-telegram" viewBox="0 0 24 24"><path d="M20.4 4.3L3.7 10.6c-.9.3-.9 1.5.1 1.7l4 1.2 1.5 4.5c.3.8 1.3 1 1.8.3l2-2.4 4 2.9c.7.5 1.7.1 1.9-.8l2.2-12.1c.2-1-.7-1.9-1.8-1.6z"/><path d="M7.8 13.5l9.4-7.2-5.6 7.3"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6.4 6.4l11.2 11.2M17.6 6.4L6.4 17.6"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3.4l1.9 5.2 5.2 1.9-5.2 1.9L12 17.6l-1.9-5.2L4.9 10.5l5.2-1.9z"/></symbol>
+</svg>
+
+<header class="nav" id="nav">
+  <div class="nav__shell">
+    <div class="nav__core">
+      <a class="brand" href="/" data-link>
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect width="24" height="24" rx="7"/><path class="brand__bar" d="M6.6 8.3h10.8M6.6 12h7.6M6.6 15.7h4.6"/></svg>
+        </span>
+        <span class="brand__text">
+          <span class="brand__name">TTPU</span>
+          <span class="brand__sub" data-i18n="brand.sub">Расписание</span>
+        </span>
+      </a>
+      <nav class="nav__links" aria-label="Разделы">
+        <a href="/" data-link data-nav="home" data-i18n="nav.overview">Обзор</a>
+        <a href="/browse/class" data-link data-nav="class" data-i18n="nav.groups">Группы</a>
+        <a href="/browse/teacher" data-link data-nav="teacher" data-i18n="nav.teachers">Преподаватели</a>
+        <a href="/browse/room" data-link data-nav="room" data-i18n="nav.rooms">Аудитории</a>
+      </nav>
+      <div class="nav__tools">
+        <button class="icon-btn" id="btn-search" type="button" data-i18n-title="nav.search" aria-label="Поиск">
+          <svg class="icon"><use href="#i-search"/></svg>
+        </button>
+        <div class="seg seg--lang" role="group" aria-label="Язык">
+          <button type="button" data-lang="ru" class="is-on">RU</button>
+          <button type="button" data-lang="en">EN</button>
+        </div>
+        <button class="icon-btn" id="btn-theme" type="button" aria-label="Тема">
+          <svg class="icon icon--sun"><use href="#i-sun"/></svg>
+          <svg class="icon icon--moon"><use href="#i-moon"/></svg>
+        </button>
+        <button class="burger" id="btn-menu" type="button" aria-label="Меню" aria-expanded="false">
+          <span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="status" id="status" hidden>
+  <svg class="icon"><use href="#i-cloud-off"/></svg>
+  <span id="status-text"></span>
+</div>
+
+<main id="main" class="main">
+
+  <!-- ─── Обзор ─────────────────────────────────────────────────────── -->
+  <section class="screen" id="screen-home" data-screen="home" hidden>
+    <div class="wrap">
+      <div class="hero">
+        <div class="hero__lead reveal">
+          <p class="eyebrow" data-i18n="home.eyebrow">Турниский политехнический университет</p>
+          <h1 class="hero__title">
+            <span data-i18n="home.title.a">Расписание,</span>
+            <em data-i18n="home.title.b">которое дышит</em>
+          </h1>
+          <p class="hero__text" data-i18n="home.lede">
+            Пары, преподаватели и аудитории — всё в одном месте. Открывается мгновенно
+            и продолжает работать без интернета.
+          </p>
+
+          <form class="finder shell" id="finder" role="search">
+            <div class="core finder__core">
+              <svg class="icon finder__icon"><use href="#i-search"/></svg>
+              <input id="finder-input" type="search" autocomplete="off" spellcheck="false"
+                     data-i18n-ph="home.search" placeholder="Группа, преподаватель или аудитория">
+              <button class="btn btn--ink" type="submit">
+                <span data-i18n="home.search.btn">Найти</span>
+                <span class="btn__dot"><svg class="icon"><use href="#i-arrow"/></svg></span>
+              </button>
+            </div>
+          </form>
+          <div class="finder__results" id="finder-results" hidden></div>
+
+          <div class="quick" id="quick"></div>
+        </div>
+
+        <aside class="hero__side reveal" style="--i:1">
+          <article class="shell now-card" id="now-card" hidden>
+            <div class="core">
+              <header class="now-card__head">
+                <span class="eyebrow eyebrow--live" data-i18n="home.now">Сейчас</span>
+                <span class="now-card__clock mono" id="now-clock">—</span>
+              </header>
+              <h2 class="now-card__subject" id="now-subject">—</h2>
+              <p class="now-card__meta" id="now-meta"></p>
+              <div class="rivet" id="now-progress"><span></span></div>
+              <p class="now-card__left mono" id="now-left"></p>
+              <div class="now-card__next" id="now-next"></div>
+            </div>
+          </article>
+
+          <article class="shell group-card" id="group-card" hidden>
+            <div class="core">
+              <header class="now-card__head">
+                <span class="eyebrow" data-i18n="home.your.group">Ваша группа</span>
+                <button class="link" id="group-change" type="button" data-i18n="home.change">сменить</button>
+              </header>
+              <p class="group-card__name" id="group-name">—</p>
+              <p class="group-card__meta" id="group-meta"></p>
+              <div class="group-card__days" id="group-days"></div>
+            </div>
+          </article>
+          <article class="shell pick-card" id="pick-card" hidden>
+            <div class="core">
+              <p class="eyebrow" data-i18n="home.pick.eyebrow">Начните здесь</p>
+              <h2 class="pick-card__title" data-i18n="home.pick.title">Выберите свою группу</h2>
+              <p class="pick-card__text" data-i18n="home.pick.text">
+                Расписание закрепится на главном экране и сохранится на устройстве.
+              </p>
+              <p class="pick-card__label" data-i18n="home.pick.popular">Популярные группы</p>
+              <div class="pick-card__chips" id="pick-chips"></div>
+              <a class="btn btn--ink pick-card__btn" href="/browse/class" data-link>
+                <span data-i18n="home.pick.btn">Все группы</span>
+                <span class="btn__dot"><svg class="icon"><use href="#i-arrow"/></svg></span>
+              </a>
+            </div>
+          </article>
+        </aside>
+      </div>
+
+      <section class="shelf reveal" id="shelf-recent" style="--i:2">
+        <header class="shelf__head">
+          <h2 class="shelf__title" data-i18n="home.recent">Недавние</h2>
+          <button class="link" id="clear-recent" type="button" hidden data-i18n="home.clear">очистить</button>
+        </header>
+        <div class="chips" id="recent"></div>
+      </section>
+
+      <section class="facts reveal" style="--i:3" id="facts"></section>
+    </div>
+  </section>
+
+  <!-- ─── Справочник ────────────────────────────────────────────────── -->
+  <section class="screen" id="screen-browse" data-screen="browse" hidden>
+    <div class="wrap wrap--narrow">
+      <header class="page-head reveal">
+        <a class="back" href="/" id="browse-back" data-link>
+          <svg class="icon"><use href="#i-back"/></svg>
+          <span data-i18n="nav.overview">Обзор</span>
+        </a>
+        <h1 class="page-title" id="browse-title">Группы</h1>
+        <p class="page-text" id="browse-text"></p>
+      </header>
+
+      <div class="tabs" id="browse-tabs" role="tablist">
+        <button role="tab" data-kind="class" data-i18n="nav.groups">Группы</button>
+        <button role="tab" data-kind="teacher" data-i18n="nav.teachers">Преподаватели</button>
+        <button role="tab" data-kind="room" data-i18n="nav.rooms">Аудитории</button>
+      </div>
+
+      <label class="shell field reveal" style="--i:1">
+        <span class="core field__core">
+          <svg class="icon"><use href="#i-search"/></svg>
+          <input id="browse-input" type="search" autocomplete="off" spellcheck="false"
+                 data-i18n-ph="browse.search" placeholder="Начните вводить название">
+          <button type="button" class="field__clear" id="browse-clear" hidden aria-label="Очистить">
+            <svg class="icon"><use href="#i-close"/></svg>
+          </button>
+        </span>
+      </label>
+
+      <div id="browse-list" class="catalog reveal" style="--i:2"></div>
+    </div>
+  </section>
+
+  <!-- ─── Расписание ────────────────────────────────────────────────── -->
+  <section class="screen" id="screen-schedule" data-screen="schedule" hidden>
+    <div class="wrap">
+      <header class="page-head page-head--schedule reveal">
+        <a class="back" href="/browse/class" id="schedule-back" data-link>
+          <svg class="icon"><use href="#i-back"/></svg>
+          <span data-i18n="nav.back">Назад</span>
+        </a>
+        <div class="page-head__row">
+          <div>
+            <p class="eyebrow" id="schedule-kind">Группа</p>
+            <h1 class="page-title page-title--big" id="schedule-title">—</h1>
+          </div>
+          <div class="page-tools">
+            <button class="btn btn--ghost" id="schedule-save" type="button">
+              <svg class="icon"><use href="#i-download"/></svg>
+              <span id="schedule-save-text" data-i18n="sched.offline">Сохранить офлайн</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div class="toolbar reveal" style="--i:1">
+        <div class="weeknav" id="weeknav"></div>
+        <div class="seg seg--view" id="view-switch" role="group">
+          <button type="button" data-view="week" class="is-on">
+            <svg class="icon"><use href="#i-grid"/></svg><span data-i18n="sched.week">Неделя</span>
+          </button>
+          <button type="button" data-view="day">
+            <svg class="icon"><use href="#i-list"/></svg><span data-i18n="sched.day">День</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="daytabs" id="daytabs" hidden></div>
+
+      <div class="grid" id="week-grid" hidden></div>
+      <div class="timeline" id="day-view" hidden></div>
+
+      <p class="stamp" id="schedule-stamp"></p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot__inner">
+    <div class="foot__brand">
+      <span class="brand__mark brand__mark--sm" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><rect width="24" height="24" rx="7"/><path class="brand__bar" d="M6.6 8.3h10.8M6.6 12h7.6M6.6 15.7h4.6"/></svg>
+      </span>
+      <p><strong>TTPU</strong> · <span data-i18n="foot.brand">Расписание</span></p>
+    </div>
+    <p class="foot__note" data-i18n="foot.note">
+      Данные загружаются из открытого расписания EduPage. Приложение сохраняет
+      расписание на устройстве, поэтому работает офлайн.
+    </p>
+    <div class="foot__meta">
+      <span id="foot-updated" class="mono"></span>
+      <a id="foot-bot" href="#" target="_blank" rel="noopener" hidden>
+        <svg class="icon"><use href="#i-telegram"/></svg><span data-i18n="foot.bot">Телеграм-бот</span>
+      </a>
+      <button class="link" id="btn-install" type="button" hidden data-i18n="foot.install">Установить</button>
+    </div>
+  </div>
+</footer>
+
+<!-- ─── Поиск ───────────────────────────────────────────────────────── -->
+<div class="overlay" id="search-overlay" hidden>
+  <div class="overlay__head">
+    <label class="shell field field--lg">
+      <span class="core field__core">
+        <svg class="icon"><use href="#i-search"/></svg>
+        <input id="search-input" type="search" autocomplete="off" spellcheck="false"
+               data-i18n-ph="search.ph" placeholder="Поиск по группам, преподавателям, аудиториям">
+      </span>
+    </label>
+    <button class="icon-btn" id="search-close" type="button" aria-label="Закрыть">
+      <svg class="icon"><use href="#i-close"/></svg>
+    </button>
+  </div>
+  <div class="overlay__body" id="search-results"></div>
+</div>
+
+<!-- ─── Меню ────────────────────────────────────────────────────────── -->
+<div class="overlay overlay--menu" id="menu-overlay" hidden>
+  <div class="menu">
+    <div class="menu__top">
+      <p class="eyebrow" data-i18n="menu.title">Меню</p>
+      <button class="icon-btn" id="menu-close" type="button" aria-label="Закрыть">
+        <svg class="icon"><use href="#i-close"/></svg>
+      </button>
+    </div>
+    <nav class="menu__nav">
+      <a href="/" data-link data-i18n="nav.overview">Обзор</a>
+      <a href="/browse/class" data-link data-i18n="nav.groups">Группы</a>
+      <a href="/browse/teacher" data-link data-i18n="nav.teachers">Преподаватели</a>
+      <a href="/browse/room" data-link data-i18n="nav.rooms">Аудитории</a>
+    </nav>
+    <div class="menu__row">
+      <span data-i18n="menu.lang">Язык</span>
+      <div class="seg seg--lang seg--wide" role="group">
+        <button type="button" data-lang="ru">Русский</button>
+        <button type="button" data-lang="en">English</button>
+      </div>
+    </div>
+    <div class="menu__row">
+      <span data-i18n="menu.theme">Оформление</span>
+      <div class="seg seg--wide" id="menu-theme" role="group">
+        <button type="button" data-theme-opt="auto" data-i18n="menu.theme.auto">Авто</button>
+        <button type="button" data-theme-opt="light" data-i18n="menu.theme.light">Светлое</button>
+        <button type="button" data-theme-opt="dark" data-i18n="menu.theme.dark">Тёмное</button>
+      </div>
+    </div>
+    <div class="menu__row menu__row--offline" id="menu-offline">
+      <span data-i18n="menu.offline">Офлайн-копия</span>
+      <span class="mono" id="menu-offline-value">—</span>
+    </div>
+    <div class="menu__foot">
+      <a id="menu-bot" href="#" target="_blank" rel="noopener" hidden>
+        <svg class="icon"><use href="#i-telegram"/></svg><span data-i18n="menu.bot">Открыть бота</span>
+      </a>
+      <span class="mono" id="menu-version"></span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="/assets/app.js" defer></script>
+</body>
+</html>
